@@ -1,0 +1,7 @@
+KCLDA Dayong Manager updater repository:
+https://github.com/marvinolita09231980/KCLDA-Dayong-Manager
+
+Publish normal GitHub releases with increasing v-number tags. The Windows
+release asset must be named KCLDA-Dayong-Manager-Update.zip.
+
+Current application version: v1.1.1.
