@@ -12,7 +12,7 @@ class BankTransactionsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        $table
             ->striped()->paginationPageOptions([10, 25, 50])->defaultPaginationPageOption(10)->columns([
                 TextColumn::make('transaction_date')
                     ->date()
@@ -46,5 +46,7 @@ class BankTransactionsTable
                     DeleteBulkAction::make(),
                 ]),
             ]);
+
+        return \App\Services\ResponsiveTable::configure($table, ['transaction_date', 'transaction_type', 'amount']);
     }
 }

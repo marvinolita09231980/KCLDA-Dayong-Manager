@@ -12,7 +12,7 @@ class DisbursementsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        $table
             ->striped()->paginationPageOptions([10, 25, 50])->defaultPaginationPageOption(10)->columns([
                 TextColumn::make('disbursement_date')
                     ->date()
@@ -48,5 +48,7 @@ class DisbursementsTable
                     DeleteBulkAction::make(),
                 ]),
             ]);
+
+        return \App\Services\ResponsiveTable::configure($table, ['payee', 'category', 'amount', 'disbursement_date']);
     }
 }

@@ -10,6 +10,8 @@ A separate Laravel 12 + Filament 5 web version of the KCLDA Dayong Membership an
 - Bank ledger and disbursement ledger
 - Dashboard totals for membership, collections, expenses, available funds and bank balance
 - Administrator-managed users and granular permissions
+- Good Standing & Compliance under Membership, with council/search/recommendation filters and member review links
+- Import, Export & Database Backup under Administration: member CSV template/import, business CSV exports, Windows database upload, and complete SQLite backup downloads
 - SQLite by default; MySQL/PostgreSQL can be selected in `.env`
 
 ## Run locally on this computer
@@ -51,4 +53,21 @@ This is a one-time import into an empty local SQLite web database. A second run
 is refused if members or transactions already exist, preventing duplicates or
 overwriting web edits. Later changes in either app do not synchronize.
 Backups and local databases are excluded from Git.
+
+## Web data tools
+
+Refresh the admin panel to access **Membership → Good Standing & Compliance** and
+**Administration → Import, Export & Database Backup**. Administrators have access;
+other users need `compliance.view` or the relevant `tools.import`, `tools.export`,
+and `tools.backup` permissions assigned through Roles & Permissions.
+
+CSV import adds new members using the downloadable template. Invalid or duplicate
+rows cancel the entire import. CSV exports cover members, cycles, payments, bank
+transactions and disbursements, and can be opened in Excel. They are reports, not
+database restore files. Windows database upload uses the same one-time importer
+described above. PHP upload limits apply.
+
+Database backup downloads a consistent SQLite snapshot and retains a copy in
+`storage/app/private/backups`. It includes accounts and permissions; store it
+securely. Backup download currently supports SQLite only.
 

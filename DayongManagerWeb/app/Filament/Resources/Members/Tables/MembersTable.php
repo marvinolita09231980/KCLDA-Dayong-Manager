@@ -14,7 +14,7 @@ class MembersTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        $table
             ->striped()->paginationPageOptions([10, 25, 50])->defaultPaginationPageOption(10)->columns([
                 TextColumn::make('full_name')->label('Member')->description(fn ($record) => $record->council)->wrap()->state(fn ($record) => $record->full_name)->searchable(['last_name','first_name','middle_name'])->sortable(['last_name','first_name']),
                 TextColumn::make('birth_date')->toggleable(isToggledHiddenByDefault: true)
@@ -73,5 +73,7 @@ class MembersTable
                     DeleteBulkAction::make(),
                 ]),
             ]);
+
+        return \App\Services\ResponsiveTable::configure($table, ['full_name', 'member_status']);
     }
 }

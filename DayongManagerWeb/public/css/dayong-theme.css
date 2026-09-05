@@ -111,6 +111,27 @@ a:focus-visible, button:focus-visible { outline: 3px solid #b78532; outline-offs
 @media (max-width: 380px) { .dayong-avatar { display: none; } .dayong-cycle-list { grid-template-columns: 1fr; } .dayong-hero-actions { flex-direction: column; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
 /* Consistent action colors, including the sign-in and record-create buttons. */
+.dayong-record-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.dayong-record-details dt { font-size: 13px; color: #526176; margin-bottom: 5px; }
+.dayong-record-details dd { font-size: 16px; color: #203750; overflow-wrap: anywhere; white-space: pre-wrap; }
+@media (max-width: 767px) {
+    .dayong-record-details { grid-template-columns: minmax(0, 1fr); }
+    .dayong-responsive-table .fi-ta-table { display: block; width: 100%; }
+    .dayong-responsive-table .fi-ta-table > thead { display: none; }
+    .dayong-responsive-table .fi-ta-table > tbody { display: grid; gap: 12px; padding: 12px; }
+    .dayong-responsive-table .fi-ta-table > tbody > tr { display: flex; flex-direction: column; min-width: 0; border: 1px solid #e0e6ed; border-radius: 12px; background: #fff; padding: 12px 14px; }
+    .dayong-responsive-table .fi-ta-table > tbody > tr > td { display: block; width: 100%; padding: 6px 0; border: 0; min-width: 0; }
+    .dayong-responsive-table .fi-ta-table > tbody > tr > td.dayong-mobile-secondary { display: none; }
+    .dayong-responsive-table .dayong-mobile-primary::before { content: attr(data-mobile-label); display: block; color: #526176; font-size: 12px; padding-bottom: 3px; }
+    .dayong-responsive-table .fi-ta-text { padding: 0; }
+    .dayong-responsive-table .fi-ta-text-item { font-size: 16px; white-space: normal; overflow-wrap: anywhere; }
+    .dayong-responsive-table .fi-ta-text-description { font-size: 14px; }
+    .dayong-responsive-table .fi-ta-actions { display: flex; justify-content: flex-start; flex-wrap: wrap; gap: 12px; padding-top: 8px; border-top: 1px solid #e4e8ed; }
+    .dayong-responsive-table .fi-ta-actions :is(button, a) { min-height: 44px; min-width: 44px; font-size: 14px; }
+    .dayong-responsive-table .fi-ta-selection-cell { align-self: flex-end; }
+    .dayong-responsive-table .fi-ta-col { width: 100%; }
+    .dayong-responsive-table .fi-ta-content { overflow-x: visible; }
+}
 .fi-btn.fi-color-primary:not(.fi-outlined) { background: #244569; color: #fff; }
 .fi-btn.fi-color-primary:not(.fi-outlined):hover { background: #193653; }
 .fi-btn.fi-color-primary .fi-icon { color: currentColor; }

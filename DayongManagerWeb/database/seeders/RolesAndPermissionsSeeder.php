@@ -11,6 +11,9 @@ use Spatie\Permission\PermissionRegistrar;
 class RolesAndPermissionsSeeder extends Seeder
 {
     private const PERMISSIONS = [
+        'tools.import',
+        'tools.export',
+        'tools.backup',
         'members.view',
         'members.manage',
         'collections.view',
@@ -51,14 +54,20 @@ class RolesAndPermissionsSeeder extends Seeder
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        foreach (self::PERMISSIONS as $permission) {
+        $expand = fn (array $permissions) => collect($permissions)->flatMap(fn ($permission) => str_ends_with($permission, '.manage')
+            ? array_map(fn ($action) => str_replace('.manage', '.'.$action, $permission), ['create', 'edit', 'delete'])
+            : [$permission])->all();
+
+        foreach ($expand(self::PERMISSIONS) as $permission) {
             Permission::findOrCreate($permission, 'web');
         }
 
-        Role::findOrCreate('super_admin', 'web');
+        if (! Role::where('name', 'super_admin')->where('guard_name', 'web')->exists()) {
+            Role::create(['name' => 'super_admin', 'guard_name' => 'web'])->syncPermissions($expand(self::PERMISSIONS));
+        }
 
         foreach (self::ROLES as $name => $permissions) {
-            Role::findOrCreate($name, 'web')->syncPermissions($permissions);
+            Role::findOrCreate($name, 'web')->syncPermissions($expand($permissions));
         }
 
         User::query()->where('is_admin', true)->each(

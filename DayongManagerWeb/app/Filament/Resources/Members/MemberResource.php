@@ -22,9 +22,10 @@ class MemberResource extends Resource
     protected static string|\UnitEnum|null $navigationGroup = 'Membership';
     protected static ?int $navigationSort = 1;
     public static function canViewAny(): bool { return auth()->user()?->hasPermission('members.view') ?? false; }
-    public static function canCreate(): bool { return auth()->user()?->hasPermission('members.manage') ?? false; }
-    public static function canEdit($record): bool { return static::canCreate(); }
-    public static function canDelete($record): bool { return static::canCreate(); }
+    public static function canCreate(): bool { return static::canViewAny() && (auth()->user()?->hasPermission('members.create') ?? false); }
+    public static function canEdit($record): bool { return static::canViewAny() && (auth()->user()?->hasPermission('members.edit') ?? false); }
+    public static function canDelete($record): bool { return static::canViewAny() && (auth()->user()?->hasPermission('members.delete') ?? false); }
+    public static function canDeleteAny(): bool { return static::canDelete(null); }
 
     public static function form(Schema $schema): Schema
     {

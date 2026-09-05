@@ -24,8 +24,20 @@ class User extends Authenticatable implements FilamentUser
 
     public function hasPermission(string $permission): bool
     {
+        if (! $this->active) {
+            return false;
+        }
+
+        // Assigned roles are authoritative, including for administrators.
+        // Do not use Gate::can(): Shield's super-admin gate bypasses unchecked permissions.
+        if ($this->roles()->exists()) {
+            return $this->roles()->whereHas('permissions', fn ($query) => $query
+                ->where('name', $permission)->where('guard_name', 'web'))->exists();
+        }
+
+        // Support the initial administrator before roles have been installed.
         return $this->is_admin
-            || $this->can($permission)
+            || $this->permissions()->where('name', $permission)->where('guard_name', 'web')->exists()
             || in_array($permission, $this->legacy_permissions ?? [], true);
     }
 

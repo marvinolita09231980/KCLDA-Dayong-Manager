@@ -22,9 +22,10 @@ class BankTransactionResource extends Resource
     protected static string|\UnitEnum|null $navigationGroup = 'Finance';
     protected static ?int $navigationSort = 4;
     public static function canViewAny(): bool { return auth()->user()?->hasPermission('ledger.view') ?? false; }
-    public static function canCreate(): bool { return auth()->user()?->hasPermission('ledger.manage') ?? false; }
-    public static function canEdit($record): bool { return static::canCreate(); }
-    public static function canDelete($record): bool { return static::canCreate(); }
+    public static function canCreate(): bool { return static::canViewAny() && (auth()->user()?->hasPermission('ledger.create') ?? false); }
+    public static function canEdit($record): bool { return static::canViewAny() && (auth()->user()?->hasPermission('ledger.edit') ?? false); }
+    public static function canDelete($record): bool { return static::canViewAny() && (auth()->user()?->hasPermission('ledger.delete') ?? false); }
+    public static function canDeleteAny(): bool { return static::canDelete(null); }
 
     public static function form(Schema $schema): Schema
     {

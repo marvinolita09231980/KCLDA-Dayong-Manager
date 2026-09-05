@@ -13,7 +13,7 @@ class UsersTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        $table
             ->striped()->paginationPageOptions([10, 25, 50])->defaultPaginationPageOption(10)->columns([
                 TextColumn::make('name')
                     ->searchable(),
@@ -51,5 +51,7 @@ class UsersTable
                     DeleteBulkAction::make(),
                 ]),
             ]);
+
+        return \App\Services\ResponsiveTable::configure($table, ['name', 'username', 'active', 'roles.name']);
     }
 }

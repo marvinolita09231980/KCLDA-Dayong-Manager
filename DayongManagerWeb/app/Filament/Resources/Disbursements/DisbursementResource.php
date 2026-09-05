@@ -22,9 +22,10 @@ class DisbursementResource extends Resource
     protected static string|\UnitEnum|null $navigationGroup = 'Finance';
     protected static ?int $navigationSort = 5;
     public static function canViewAny(): bool { return auth()->user()?->hasPermission('disbursements.view') ?? false; }
-    public static function canCreate(): bool { return auth()->user()?->hasPermission('disbursements.manage') ?? false; }
-    public static function canEdit($record): bool { return static::canCreate(); }
-    public static function canDelete($record): bool { return static::canCreate(); }
+    public static function canCreate(): bool { return static::canViewAny() && (auth()->user()?->hasPermission('disbursements.create') ?? false); }
+    public static function canEdit($record): bool { return static::canViewAny() && (auth()->user()?->hasPermission('disbursements.edit') ?? false); }
+    public static function canDelete($record): bool { return static::canViewAny() && (auth()->user()?->hasPermission('disbursements.delete') ?? false); }
+    public static function canDeleteAny(): bool { return static::canDelete(null); }
 
     public static function form(Schema $schema): Schema
     {

@@ -22,9 +22,10 @@ class PaymentResource extends Resource
     protected static string|\UnitEnum|null $navigationGroup = 'Collections';
     protected static ?int $navigationSort = 3;
     public static function canViewAny(): bool { return auth()->user()?->hasPermission('collections.view') ?? false; }
-    public static function canCreate(): bool { return auth()->user()?->hasPermission('collections.manage') ?? false; }
-    public static function canEdit($record): bool { return static::canCreate(); }
-    public static function canDelete($record): bool { return static::canCreate(); }
+    public static function canCreate(): bool { return static::canViewAny() && (auth()->user()?->hasPermission('collections.create') ?? false); }
+    public static function canEdit($record): bool { return static::canViewAny() && (auth()->user()?->hasPermission('collections.edit') ?? false); }
+    public static function canDelete($record): bool { return static::canViewAny() && (auth()->user()?->hasPermission('collections.delete') ?? false); }
+    public static function canDeleteAny(): bool { return static::canDelete(null); }
 
     public static function form(Schema $schema): Schema
     {

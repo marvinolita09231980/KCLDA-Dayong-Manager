@@ -12,7 +12,7 @@ class PaymentsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        $table
             ->striped()->paginationPageOptions([10, 25, 50])->defaultPaginationPageOption(10)->columns([
                 TextColumn::make('member.full_name')->label('Member')->state(fn ($record) => $record->member->full_name)->searchable(['member.first_name','member.last_name']),
                 TextColumn::make('member.council')->searchable(),
@@ -46,5 +46,7 @@ class PaymentsTable
                     DeleteBulkAction::make(),
                 ]),
             ]);
+
+        return \App\Services\ResponsiveTable::configure($table, ['member.full_name', 'member.council', 'collectionCycle.name', 'amount']);
     }
 }

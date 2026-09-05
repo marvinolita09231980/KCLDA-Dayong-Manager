@@ -253,15 +253,26 @@ return [
     */
 
     'custom_permissions' => [
+        'tools.import' => 'Import records',
+        'tools.export' => 'Export all business records',
+        'tools.backup' => 'Back up complete database',
         'members.view' => 'View members',
-        'members.manage' => 'Manage members',
+        'members.create' => 'members — Allow create',
+        'members.edit' => 'members — Allow edit',
+        'members.delete' => 'members — Allow delete',
         'collections.view' => 'View collections',
-        'collections.manage' => 'Manage collections',
+        'collections.create' => 'collections and cycles — Allow create',
+        'collections.edit' => 'collections and cycles — Allow edit',
+        'collections.delete' => 'collections and cycles — Allow delete',
         'compliance.view' => 'View compliance',
         'ledger.view' => 'View bank ledger',
-        'ledger.manage' => 'Manage bank ledger',
+        'ledger.create' => 'bank ledger — Allow create',
+        'ledger.edit' => 'bank ledger — Allow edit',
+        'ledger.delete' => 'bank ledger — Allow delete',
         'disbursements.view' => 'View disbursements',
-        'disbursements.manage' => 'Manage disbursements',
+        'disbursements.create' => 'disbursements — Allow create',
+        'disbursements.edit' => 'disbursements — Allow edit',
+        'disbursements.delete' => 'disbursements — Allow delete',
     ],
 
     /*
