@@ -40,6 +40,12 @@ public sealed class MemberDialog : Form
 		ShowCheckBox = true
 	};
 
+	private readonly DateTimePicker dateOfDeath = new DateTimePicker
+	{
+		Format = DateTimePickerFormat.Short,
+		ShowCheckBox = true
+	};
+
 	private readonly CheckBox fourthDegree = new CheckBox
 	{
 		Text = "Fourth-Degree member"
@@ -120,7 +126,7 @@ public sealed class MemberDialog : Form
 			Dock = DockStyle.Fill,
 			Padding = new Padding(26),
 			ColumnCount = 2,
-			RowCount = 21,
+			RowCount = 22,
 			AutoScroll = true
 		};
 		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 180f));
@@ -140,13 +146,14 @@ public sealed class MemberDialog : Form
 		Add(tableLayoutPanel, "Beneficiary contact", beneficiaryContact, 12);
 		tableLayoutPanel.Controls.Add(fourthDegree, 1, 13);
 		Add(tableLayoutPanel, "Official status", status, 14);
-		Add(tableLayoutPanel, "Status remarks", remarks, 15);
+		Add(tableLayoutPanel, "Date of death", dateOfDeath, 15);
+		Add(tableLayoutPanel, "Status remarks", remarks, 16);
 		remarks.Multiline = true;
 		remarks.ScrollBars = ScrollBars.Vertical;
-		Add(tableLayoutPanel, "Benefits claimed", claimedBenefits, 16);
-		Add(tableLayoutPanel, "Service date", serviceDate, 17);
-		Add(tableLayoutPanel, "Claim received date", claimReceivedDate, 18);
-		Add(tableLayoutPanel, "Received by / beneficiary", claimReceivedBy, 19);
+		Add(tableLayoutPanel, "Benefits claimed", claimedBenefits, 17);
+		Add(tableLayoutPanel, "Service date", serviceDate, 18);
+		Add(tableLayoutPanel, "Claim received date", claimReceivedDate, 19);
+		Add(tableLayoutPanel, "Received by / beneficiary", claimReceivedBy, 20);
 		FlowLayoutPanel flowLayoutPanel = new FlowLayoutPanel
 		{
 			Dock = DockStyle.Fill,
@@ -176,7 +183,7 @@ public sealed class MemberDialog : Form
 		};
 		flowLayoutPanel.Controls.Add(button);
 		flowLayoutPanel.Controls.Add(button2);
-		tableLayoutPanel.Controls.Add(flowLayoutPanel, 1, 20);
+		tableLayoutPanel.Controls.Add(flowLayoutPanel, 1, 21);
 		base.Controls.Add(tableLayoutPanel);
 		base.AcceptButton = button;
 		base.CancelButton = button2;
@@ -205,6 +212,11 @@ public sealed class MemberDialog : Form
 			fourthDegree.Checked = m.IsFourthDegree;
 			status.SelectedItem = m.MemberStatus;
 			remarks.Text = m.Remarks;
+			dateOfDeath.Checked = m.DateOfDeath.HasValue;
+			if (m.DateOfDeath.HasValue)
+			{
+				dateOfDeath.Value = m.DateOfDeath.Value;
+			}
 			string[] array = m.ClaimedBenefits.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 			foreach (string value in array)
 			{
@@ -273,6 +285,7 @@ public sealed class MemberDialog : Form
 				Value.IsFourthDegree = fourthDegree.Checked;
 				Value.MemberStatus = status.Text;
 				Value.Remarks = remarks.Text;
+				Value.DateOfDeath = (dateOfDeath.Checked ? new DateTime?(dateOfDeath.Value.Date) : ((DateTime?)null));
 				Value.StartCycleId = (startCycle.SelectedItem as CollectionCycle)?.Id;
 				Value.ClaimedBenefits = string.Join(", ", from object x in claimedBenefits.CheckedItems
 					select x.ToString());
@@ -286,6 +299,7 @@ public sealed class MemberDialog : Form
 		void UpdateClaimFields()
 		{
 			bool enabled = status.Text == "Deceased";
+			dateOfDeath.Enabled = enabled;
 			claimedBenefits.Enabled = enabled;
 			serviceDate.Enabled = enabled;
 			claimReceivedDate.Enabled = enabled;

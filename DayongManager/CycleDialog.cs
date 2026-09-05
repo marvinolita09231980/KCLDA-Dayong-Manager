@@ -26,6 +26,12 @@ public sealed class CycleDialog : Form
 		ShowCheckBox = true
 	};
 
+	private readonly DateTimePicker start = new DateTimePicker
+	{
+		Format = DateTimePickerFormat.Short,
+		ShowCheckBox = true
+	};
+
 	private readonly CheckBox active = new CheckBox
 	{
 		Text = "Active cycle",
@@ -39,7 +45,7 @@ public sealed class CycleDialog : Form
 		Value = x ?? new CollectionCycle();
 		Text = ((x == null) ? "New Collection Cycle" : "Edit Collection Cycle");
 		base.Width = 570;
-		base.Height = 410;
+		base.Height = 450;
 		Font = new Font("Segoe UI", 11f);
 		BackColor = Color.FromArgb(248, 249, 252);
 		base.StartPosition = FormStartPosition.CenterParent;
@@ -56,15 +62,16 @@ public sealed class CycleDialog : Form
 			Dock = DockStyle.Fill,
 			Padding = new Padding(26),
 			ColumnCount = 2,
-			RowCount = 6
+			RowCount = 7
 		};
 		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 165f));
 		tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
 		Add(tableLayoutPanel, "Cycle name", name, 0);
 		Add(tableLayoutPanel, "Type", type, 1);
 		Add(tableLayoutPanel, "Expected amount", amount, 2);
-		Add(tableLayoutPanel, "Due date", due, 3);
-		tableLayoutPanel.Controls.Add(active, 1, 4);
+		Add(tableLayoutPanel, "Start date", start, 3);
+		Add(tableLayoutPanel, "Due date", due, 4);
+		tableLayoutPanel.Controls.Add(active, 1, 5);
 		FlowLayoutPanel flowLayoutPanel = new FlowLayoutPanel
 		{
 			Dock = DockStyle.Fill,
@@ -93,13 +100,18 @@ public sealed class CycleDialog : Form
 		};
 		flowLayoutPanel.Controls.Add(button);
 		flowLayoutPanel.Controls.Add(value);
-		tableLayoutPanel.Controls.Add(flowLayoutPanel, 1, 5);
+		tableLayoutPanel.Controls.Add(flowLayoutPanel, 1, 6);
 		base.Controls.Add(tableLayoutPanel);
 		if (x != null)
 		{
 			name.Text = x.Name;
 			type.SelectedItem = x.Type;
 			amount.Value = x.ExpectedAmount;
+			start.Checked = x.StartDate.HasValue;
+			if (x.StartDate.HasValue)
+			{
+				start.Value = x.StartDate.Value;
+			}
 			due.Checked = x.DueDate.HasValue;
 			if (x.DueDate.HasValue)
 			{
@@ -118,6 +130,7 @@ public sealed class CycleDialog : Form
 				Value.Name = name.Text;
 				Value.Type = type.Text;
 				Value.ExpectedAmount = (type.Text is "Annual Dues" or "Registration Fee") ? 100m : amount.Value;
+				Value.StartDate = (start.Checked ? new DateTime?(start.Value.Date) : ((DateTime?)null));
 				Value.DueDate = (due.Checked ? new DateTime?(due.Value.Date) : ((DateTime?)null));
 				Value.Active = active.Checked;
 				base.DialogResult = DialogResult.OK;

@@ -16,10 +16,14 @@ internal static class Program
 			Application.SetHighDpiMode(HighDpiMode.SystemAware);
 			DatabaseService databaseService = new DatabaseService();
 			databaseService.Initialize();
-			using LoginDialog loginDialog = new LoginDialog(databaseService);
-			if (loginDialog.ShowDialog() == DialogResult.OK)
+			while (true)
 			{
-				Application.Run(new MainForm(databaseService, loginDialog.AuthenticatedUsername));
+				using LoginDialog loginDialog = new LoginDialog(databaseService);
+				if (loginDialog.ShowDialog() != DialogResult.OK) break;
+
+				using MainForm mainForm = new MainForm(databaseService, loginDialog.AuthenticatedUsername);
+				Application.Run(mainForm);
+				if (!mainForm.LogoutRequested) break;
 			}
 		}
 		catch (Exception ex)

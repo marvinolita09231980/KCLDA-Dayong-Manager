@@ -140,6 +140,7 @@ public static class ExcelService
 				Address = m.Address,
 				BirthDate = m.BirthDate?.ToString("yyyy-MM-dd"),
 				RegistrationDate = m.RegistrationDate?.ToString("yyyy-MM-dd"),
+				DateOfDeath = m.DateOfDeath?.ToString("yyyy-MM-dd"),
 				IsFourthDegree = m.IsFourthDegree,
 				BeneficiaryName = m.BeneficiaryName,
 				BeneficiaryContact = m.BeneficiaryContact,

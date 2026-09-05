@@ -1,0 +1,11 @@
+bin/
+obj/
+**/bin/
+**/obj/
+.android-sdk/
+.jdk17/
+.jdk17.zip
+
+# Local build outputs
+*.apk
+.build-verification/

@@ -39,6 +39,8 @@ public sealed class Member
 
 	public DateTime? RegistrationDate { get; set; }
 
+	public DateTime? DateOfDeath { get; set; }
+
 	public long? StartCycleId { get; set; }
 
 	public string ClaimedBenefits { get; set; } = "";

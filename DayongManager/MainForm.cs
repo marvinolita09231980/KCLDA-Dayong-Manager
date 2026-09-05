@@ -62,6 +62,12 @@ public sealed class MainForm : Form
 		Width = 150
 	};
 
+	private readonly ComboBox memberCycle = new ComboBox
+	{
+		DropDownStyle = ComboBoxStyle.DropDownList,
+		Width = 240
+	};
+
 	private readonly ComboBox paymentCouncil = new ComboBox
 	{
 		DropDownStyle = ComboBoxStyle.DropDownList,
@@ -72,6 +78,18 @@ public sealed class MainForm : Form
 	{
 		DropDownStyle = ComboBoxStyle.DropDownList,
 		Width = 260
+	};
+
+	private readonly ComboBox paymentType = new ComboBox
+	{
+		DropDownStyle = ComboBoxStyle.DropDownList,
+		Width = 170
+	};
+
+	private readonly ComboBox dashboardCycle = new ComboBox
+	{
+		DropDownStyle = ComboBoxStyle.DropDownList,
+		Dock = DockStyle.Fill
 	};
 
 	private readonly ComboBox complianceCouncil = new ComboBox
@@ -154,6 +172,10 @@ public sealed class MainForm : Form
 
 	private decimal disbursementPrintBalance;
 
+	private LanSyncService? lanSyncService;
+
+	public bool LogoutRequested { get; private set; }
+
 	public MainForm(DatabaseService database, string username = "admin")
 	{
 		db = database;
@@ -186,6 +208,26 @@ public sealed class MainForm : Form
 			AutoSize = true,
 			Location = new Point(24, 20)
 		});
+		FlowLayoutPanel accountActions = new FlowLayoutPanel
+		{
+			Dock = DockStyle.Right,
+			Width = 300,
+			Padding = new Padding(0, 17, 18, 0),
+			FlowDirection = FlowDirection.RightToLeft,
+			WrapContents = false,
+			BackColor = KofcNavy
+		};
+		Button logoutButton = HeaderButton("Logout", 90);
+		Button changePasswordButton = HeaderButton("Change Password", 155);
+		logoutButton.Click += delegate
+		{
+			LogoutRequested = true;
+			Close();
+		};
+		changePasswordButton.Click += ChangePassword;
+		accountActions.Controls.Add(logoutButton);
+		accountActions.Controls.Add(changePasswordButton);
+		panel.Controls.Add(accountActions);
 		panel.Controls.Add(new Panel
 		{
 			Dock = DockStyle.Bottom,
@@ -218,45 +260,131 @@ public sealed class MainForm : Form
 
 	private TabPage DashboardTab()
 	{
-		TabPage tabPage = new TabPage("Dashboard");
+		TabPage tabPage = new TabPage("Dashboard")
+		{
+			Padding = new Padding(20),
+			AutoScroll = true
+		};
 		Label value = new Label
 		{
 			Text = "Collection Overview",
 			Font = new Font("Segoe UI Semibold", 22f),
-			AutoSize = true,
-			Location = new Point(25, 25)
+			Dock = DockStyle.Fill,
+			TextAlign = ContentAlignment.MiddleLeft
 		};
-		Label[] array = new Label[9] { membersCard, collectedCard, registrationCard, annualDuesCard, dayongCollectionsCard, expensesCard, availableFundsCard, paidCard, balanceCard };
-		int dashboardRows = (int)Math.Ceiling(array.Length / 4d);
-		TableLayoutPanel flowLayoutPanel = new TableLayoutPanel
+		TableLayoutPanel DashboardSection(string sectionTitle, params Label[] cards)
 		{
-			Location = new Point(20, 78),
-			Size = new Size(1165, dashboardRows * 135),
-			Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
-			ColumnCount = 4,
-			RowCount = dashboardRows,
-			Padding = new Padding(5),
-			BackColor = Color.FromArgb(245, 247, 250)
-		};
-		for (int column = 0; column < 4; column++) flowLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25f));
-		for (int row = 0; row < dashboardRows; row++) flowLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100f / dashboardRows));
-		for (int index = 0; index < array.Length; index++)
-		{
-			Label card = array[index];
-			card.Dock = DockStyle.Fill;
-			card.Margin = new Padding(8);
-			flowLayoutPanel.Controls.Add(card, index % 4, index / 4);
+			TableLayoutPanel cardLayout = new TableLayoutPanel
+			{
+				Dock = DockStyle.Fill,
+				ColumnCount = cards.Length,
+				RowCount = 1,
+				Padding = new Padding(4),
+				BackColor = Color.FromArgb(245, 247, 250)
+			};
+			for (int column = 0; column < cards.Length; column++)
+			{
+				cardLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / cards.Length));
+				cards[column].Dock = DockStyle.Fill;
+				cards[column].Margin = new Padding(6, 6, 6, 14);
+				cardLayout.Controls.Add(cards[column], column, 0);
+			}
+
+			TableLayoutPanel section = new TableLayoutPanel
+			{
+				Dock = DockStyle.Fill,
+				ColumnCount = 1,
+				RowCount = 2,
+				Margin = new Padding(0, 0, 0, 8),
+				BackColor = Color.FromArgb(245, 247, 250)
+			};
+			section.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+			section.RowStyles.Add(new RowStyle(SizeType.Absolute, 28f));
+			section.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+			section.Controls.Add(new Label
+			{
+				Text = sectionTitle,
+				Dock = DockStyle.Fill,
+				TextAlign = ContentAlignment.MiddleLeft,
+				Font = new Font("Segoe UI Semibold", 12.5f),
+				ForeColor = KofcNavy,
+				Padding = new Padding(10, 0, 0, 0)
+			}, 0, 0);
+			section.Controls.Add(cardLayout, 0, 1);
+			return section;
 		}
+
+		TableLayoutPanel cycleSection = DashboardSection("CYCLE", membersCard, paidCard, balanceCard);
+		TableLayoutPanel collectionSection = DashboardSection("COLLECTION", collectedCard, registrationCard, annualDuesCard, dayongCollectionsCard);
+		TableLayoutPanel disbursementSection = DashboardSection("DISBURSEMENT", expensesCard, availableFundsCard);
 		Label value3 = new Label
 		{
-			Text = "Select a collection cycle on the Collections tab to refresh its totals.",
-			AutoSize = true,
+			Text = "Choose a cycle above to refresh the dashboard totals.",
+			Dock = DockStyle.Fill,
 			ForeColor = Color.DimGray,
-			Location = new Point(28, 78 + dashboardRows * 135 + 12)
+			TextAlign = ContentAlignment.MiddleLeft,
+			Padding = new Padding(8, 0, 0, 0)
 		};
-		tabPage.Controls.Add(value);
-		tabPage.Controls.Add(flowLayoutPanel);
-		tabPage.Controls.Add(value3);
+		TableLayoutPanel dashboardHeader = new TableLayoutPanel
+		{
+			Dock = DockStyle.Fill,
+			ColumnCount = 1,
+			RowCount = 2
+		};
+		dashboardHeader.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+		dashboardHeader.RowStyles.Add(new RowStyle(SizeType.Absolute, 58f));
+		dashboardHeader.RowStyles.Add(new RowStyle(SizeType.Absolute, 45f));
+		dashboardHeader.Controls.Add(value, 0, 0);
+		FlowLayoutPanel cyclePicker = new FlowLayoutPanel
+		{
+			Dock = DockStyle.Fill,
+			FlowDirection = FlowDirection.LeftToRight,
+			WrapContents = false,
+			Padding = new Padding(8, 4, 0, 0)
+		};
+		cyclePicker.Controls.Add(new Label
+		{
+			Text = "Cycle",
+			AutoSize = true,
+			Margin = new Padding(0, 7, 8, 0)
+		});
+		dashboardCycle.Width = 260;
+		cyclePicker.Controls.Add(dashboardCycle);
+		dashboardHeader.Controls.Add(cyclePicker, 0, 1);
+		TableLayoutPanel dashboardLayout = new TableLayoutPanel
+		{
+			Dock = DockStyle.Top,
+			Height = 685,
+			ColumnCount = 1,
+			RowCount = 5,
+			BackColor = Color.FromArgb(245, 247, 250)
+		};
+		dashboardLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+		dashboardLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 103f));
+		dashboardLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 180f));
+		dashboardLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 180f));
+		dashboardLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 180f));
+		dashboardLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 42f));
+		dashboardLayout.Controls.Add(dashboardHeader, 0, 0);
+		dashboardLayout.Controls.Add(cycleSection, 0, 1);
+		dashboardLayout.Controls.Add(collectionSection, 0, 2);
+		dashboardLayout.Controls.Add(disbursementSection, 0, 3);
+		dashboardLayout.Controls.Add(value3, 0, 4);
+		tabPage.Controls.Add(dashboardLayout);
+		dashboardCycle.SelectedIndexChanged += delegate
+		{
+			if (dashboardCycle.SelectedItem is CollectionCycle selected &&
+				(paymentCycle.SelectedItem as CollectionCycle)?.Id != selected.Id)
+			{
+				paymentType.SelectedValue = selected.Type;
+				PopulatePaymentCycles(selected.Id);
+				paymentCycle.SelectedValue = selected.Id;
+			}
+			else
+			{
+				RefreshDashboard();
+			}
+		};
 		return tabPage;
 	}
 
@@ -278,6 +406,13 @@ public sealed class MainForm : Form
 				Margin = new Padding(15, 10, 2, 0)
 			});
 		flowLayoutPanel.Controls.Add(memberCouncil);
+		flowLayoutPanel.Controls.Add(new Label
+		{
+			Text = "Cycle",
+			AutoSize = true,
+			Margin = new Padding(15, 10, 2, 0)
+		});
+		flowLayoutPanel.Controls.Add(memberCycle);
 		if (Can("AddMembers")) flowLayoutPanel.Controls.Add(Button("Add Member", AddMember));
 		tabPage.Controls.Add(memberGrid);
 		tabPage.Controls.Add(flowLayoutPanel);
@@ -286,6 +421,10 @@ public sealed class MainForm : Form
 			RefreshMembers();
 		};
 		memberCouncil.SelectedIndexChanged += delegate
+		{
+			RefreshMembers();
+		};
+		memberCycle.SelectedIndexChanged += delegate
 		{
 			RefreshMembers();
 		};
@@ -299,9 +438,16 @@ public sealed class MainForm : Form
 		FlowLayoutPanel flowLayoutPanel = Bar();
 		flowLayoutPanel.Controls.Add(new Label
 			{
-				Text = "Cycle",
+				Text = "Collection Type",
 				AutoSize = true,
 				Margin = new Padding(5, 10, 2, 0)
+			});
+		flowLayoutPanel.Controls.Add(paymentType);
+		flowLayoutPanel.Controls.Add(new Label
+			{
+				Text = "Cycle",
+				AutoSize = true,
+				Margin = new Padding(15, 10, 2, 0)
 			});
 		flowLayoutPanel.Controls.Add(paymentCycle);
 		flowLayoutPanel.Controls.Add(new Label
@@ -330,7 +476,16 @@ public sealed class MainForm : Form
 		tabPage.Controls.Add(flowLayoutPanel);
 		paymentCycle.SelectedIndexChanged += delegate
 		{
+			if (paymentCycle.SelectedItem is CollectionCycle selected &&
+				(dashboardCycle.SelectedItem as CollectionCycle)?.Id != selected.Id)
+			{
+				dashboardCycle.SelectedValue = selected.Id;
+			}
 			RefreshPayments();
+		};
+		paymentType.SelectedIndexChanged += delegate
+		{
+			PopulatePaymentCycles();
 		};
 		paymentCouncil.SelectedIndexChanged += delegate
 		{
@@ -465,6 +620,7 @@ public sealed class MainForm : Form
 		flowLayoutPanel.Controls.Add(Button("Change Password", ChangePassword, 170));
 		flowLayoutPanel.Controls.Add(Button("Check for Updates", CheckForUpdates, 175));
 		if (Can("ManageUsers")) flowLayoutPanel.Controls.Add(Button("Manage Users", ManageUsers, 160));
+		flowLayoutPanel.Controls.Add(Button("Start LAN Sync", StartLanSync, 170));
 		tabPage.Controls.Add(flowLayoutPanel);
 		tabPage.Controls.Add(new Label
 		{
@@ -476,10 +632,33 @@ public sealed class MainForm : Form
 		return tabPage;
 	}
 
+	private async void StartLanSync(object? sender, EventArgs e)
+	{
+		try
+		{
+			lanSyncService ??= new LanSyncService(db);
+			await lanSyncService.StartAsync();
+			MessageBox.Show($"LAN Sync is ready. Keep this Windows app open.\n\nServer address: {lanSyncService.Address}\nSync code: {lanSyncService.Code}\n\nEnter these values on the Android Sync tab. Both devices must be on the same Wi-Fi network.", "LAN Sync", MessageBoxButtons.OK, MessageBoxIcon.Information);
+		}
+		catch (Exception ex)
+		{
+			MessageBox.Show("Could not start LAN Sync. Allow the app through Windows Firewall and try again.\n\n" + ex.Message, "LAN Sync Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		}
+	}
+
+	protected override void OnFormClosed(FormClosedEventArgs e)
+	{
+		if (lanSyncService != null) lanSyncService.DisposeAsync().AsTask().GetAwaiter().GetResult();
+		base.OnFormClosed(e);
+	}
+
 	private void ChangePassword(object? sender, EventArgs e)
 	{
 		using ChangePasswordDialog changePasswordDialog = new ChangePasswordDialog(db, currentUsername);
-		changePasswordDialog.ShowDialog(this);
+		if (changePasswordDialog.ShowDialog(this) == DialogResult.OK)
+		{
+			RememberedLoginStore.Clear();
+		}
 	}
 
 	private async void CheckForUpdates(object? sender, EventArgs e)
@@ -520,6 +699,25 @@ public sealed class MainForm : Form
 		button.FlatAppearance.BorderColor = KofcGold;
 		button.FlatAppearance.BorderSize = 1;
 		button.Click += click;
+		return button;
+	}
+
+	private static Button HeaderButton(string text, int width)
+	{
+		Button button = new Button
+		{
+			Text = text,
+			Width = width,
+			Height = 38,
+			Margin = new Padding(8, 0, 0, 0),
+			BackColor = Color.White,
+			ForeColor = KofcNavy,
+			Font = new Font("Segoe UI Semibold", 10f),
+			Cursor = Cursors.Hand,
+			FlatStyle = FlatStyle.Flat
+		};
+		button.FlatAppearance.BorderColor = KofcGold;
+		button.FlatAppearance.BorderSize = 1;
 		return button;
 	}
 
@@ -628,6 +826,11 @@ public sealed class MainForm : Form
 	private void RefreshMembers()
 	{
 		members = db.GetMembers(search.Text, (memberCouncil.Text == "") ? "All Councils" : memberCouncil.Text);
+		if (memberCycle.SelectedItem is CycleFilterOption { CycleId: long cycleId })
+		{
+			HashSet<long> cycleMemberIds = db.GetPaymentRows(cycleId).Select((PaymentRow row) => row.MemberId).ToHashSet();
+			members = members.Where((Member member) => cycleMemberIds.Contains(member.Id)).ToList();
+		}
 		memberGrid.DataSource = members.Select((Member x, int index) => new
 		{
 			No = index + 1,
@@ -637,6 +840,7 @@ public sealed class MainForm : Form
 			Council = x.Council,
 			ContactNumber = x.ContactNumber,
 			Status = x.MemberStatus,
+			DateOfDeath = x.DateOfDeath?.ToString("MMM d, yyyy"),
 			MembershipStartCycle = (cycles.FirstOrDefault((CollectionCycle c) => c.Id == x.StartCycleId)?.Name ?? "Not set"),
 			BenefitsClaimed = x.ClaimedBenefits,
 			Remarks = x.Remarks
@@ -858,6 +1062,9 @@ public sealed class MainForm : Form
 
 	private void RefreshCycles()
 	{
+		long? selectedCycleId = (paymentCycle.SelectedItem as CollectionCycle)?.Id
+			?? (dashboardCycle.SelectedItem as CollectionCycle)?.Id;
+		long? memberCycleId = (memberCycle.SelectedItem as CycleFilterOption)?.CycleId;
 		cycles = db.GetCycles();
 		cycleGrid.DataSource = cycles.Select((CollectionCycle x, int index) => new
 		{
@@ -866,6 +1073,7 @@ public sealed class MainForm : Form
 			Name = x.Name,
 			Type = x.Type,
 			ExpectedAmount = x.ExpectedAmount,
+			StartDate = x.StartDate?.ToString("MMM d, yyyy"),
 			DueDate = x.DueDate?.ToString("MMM d, yyyy"),
 			Status = (x.Active ? "Active" : "Closed")
 		}).ToList();
@@ -874,10 +1082,71 @@ public sealed class MainForm : Form
 			cycleGrid.Columns["Id"].Visible = false;
 		}
 		StyleNumberColumn(cycleGrid);
+		string selectedType = cycles.FirstOrDefault(x => x.Id == selectedCycleId)?.Type
+			?? (paymentType.SelectedItem as PaymentTypeOption)?.DatabaseType
+			?? "Dayong";
+		paymentType.DataSource = null;
+		paymentType.DataSource = new List<PaymentTypeOption>
+		{
+			new PaymentTypeOption("Dayong", "Dayong Cycle"),
+			new PaymentTypeOption("Registration Fee", "Registration Fee"),
+			new PaymentTypeOption("Annual Dues", "Annual Dues")
+		};
+		paymentType.DisplayMember = "DisplayName";
+		paymentType.ValueMember = "DatabaseType";
+		paymentType.SelectedValue = selectedType;
+		PopulatePaymentCycles(selectedCycleId);
+		dashboardCycle.DataSource = null;
+		dashboardCycle.DataSource = new List<CollectionCycle>(cycles);
+		dashboardCycle.DisplayMember = "Name";
+		dashboardCycle.ValueMember = "Id";
+		if (selectedCycleId.HasValue)
+		{
+			dashboardCycle.SelectedValue = selectedCycleId.Value;
+		}
+		memberCycle.Items.Clear();
+		memberCycle.Items.Add(new CycleFilterOption(null, "All Cycles"));
+		foreach (CollectionCycle cycle in cycles)
+		{
+			memberCycle.Items.Add(new CycleFilterOption(cycle.Id, cycle.Name));
+		}
+		memberCycle.SelectedItem = memberCycle.Items.Cast<CycleFilterOption>()
+			.FirstOrDefault((CycleFilterOption option) => option.CycleId == memberCycleId)
+			?? memberCycle.Items[0];
+	}
+
+	private void PopulatePaymentCycles(long? preferredCycleId = null)
+	{
+		string type = (paymentType.SelectedItem as PaymentTypeOption)?.DatabaseType ?? "Dayong";
+		long? currentId = preferredCycleId ?? (paymentCycle.SelectedItem as CollectionCycle)?.Id;
+		List<CollectionCycle> filteredCycles = cycles.Where(x => x.Type == type).ToList();
 		paymentCycle.DataSource = null;
-		paymentCycle.DataSource = cycles;
+		paymentCycle.DataSource = filteredCycles;
 		paymentCycle.DisplayMember = "Name";
 		paymentCycle.ValueMember = "Id";
+		if (currentId.HasValue && filteredCycles.Any(x => x.Id == currentId.Value)) paymentCycle.SelectedValue = currentId.Value;
+	}
+
+	private sealed class PaymentTypeOption
+	{
+		public string DatabaseType { get; }
+		public string DisplayName { get; }
+		public PaymentTypeOption(string databaseType, string displayName) { DatabaseType = databaseType; DisplayName = displayName; }
+	}
+
+	private sealed class CycleFilterOption
+	{
+		public long? CycleId { get; }
+
+		private string Name { get; }
+
+		public CycleFilterOption(long? cycleId, string name)
+		{
+			CycleId = cycleId;
+			Name = name;
+		}
+
+		public override string ToString() => Name;
 	}
 
 	private void RefreshPayments()
@@ -905,6 +1174,7 @@ public sealed class MainForm : Form
 			Expected = x.Expected,
 			Paid = x.Paid,
 			DatePaid = x.DatePaid?.ToString("MMM d, yyyy"),
+			ReceiptNumber = x.ReceiptNumber,
 			Status = x.Status
 		}).ToList();
 		if (paymentGrid.Columns.Contains("MemberId"))
@@ -932,6 +1202,15 @@ public sealed class MainForm : Form
 				FillWeight = 90f,
 				MinimumWidth = 120,
 				DefaultCellStyle = ActionCellStyle(SuccessGreen)
+			});
+		}
+		if (Can("RecordPayments") && !paymentGrid.Columns.Contains("DeletePaymentAction"))
+		{
+			paymentGrid.Columns.Add(new DataGridViewButtonColumn
+			{
+				Name = "DeletePaymentAction", HeaderText = "Delete", Text = "Delete", UseColumnTextForButtonValue = true,
+				FlatStyle = FlatStyle.Flat, FillWeight = 75f, MinimumWidth = 95,
+				DefaultCellStyle = ActionCellStyle(DangerRed)
 			});
 		}
 		RefreshDashboard();
@@ -1150,20 +1429,54 @@ public sealed class MainForm : Form
 			return;
 		}
 		long id = Convert.ToInt64(paymentGrid.CurrentRow.Cells["MemberId"].Value);
-		using PaymentDialog paymentDialog = new PaymentDialog(payments.First((PaymentRow x) => x.MemberId == id));
+		PaymentRow selectedPayment = payments.First((PaymentRow x) => x.MemberId == id);
+		List<PaymentDue> memberDues = db.GetMemberDues(id, collectionCycle.Id);
+		using PaymentDialog paymentDialog = new PaymentDialog(selectedPayment.MemberName, memberDues);
 		if (paymentDialog.ShowDialog(this) == DialogResult.OK)
 		{
-			db.SavePayment(id, collectionCycle.Id, paymentDialog.Amount, paymentDialog.DatePaid);
+			db.SavePayments(id, paymentDialog.Allocations, paymentDialog.DatePaid, paymentDialog.ReceiptNumber);
 			RefreshPayments();
 		}
 	}
 
 	private void PaymentGridCellContentClick(object? sender, DataGridViewCellEventArgs e)
 	{
-		if (Can("RecordPayments") && e.RowIndex >= 0 && e.ColumnIndex >= 0 && !(paymentGrid.Columns[e.ColumnIndex].Name != "PaymentAction"))
+		if (!Can("RecordPayments") || e.RowIndex < 0 || e.ColumnIndex < 0) return;
+		string action = paymentGrid.Columns[e.ColumnIndex].Name;
+		if (action == "PaymentAction")
 		{
 			paymentGrid.CurrentCell = paymentGrid.Rows[e.RowIndex].Cells["MemberName"];
 			RecordPayment(sender, EventArgs.Empty);
+		}
+		else if (action == "DeletePaymentAction")
+		{
+			paymentGrid.CurrentCell = paymentGrid.Rows[e.RowIndex].Cells["MemberName"];
+			long memberId = Convert.ToInt64(paymentGrid.Rows[e.RowIndex].Cells["MemberId"].Value);
+			PaymentRow payment = payments.First(x => x.MemberId == memberId);
+			if (payment.PaymentId == 0 || payment.Paid <= 0m)
+			{
+				MessageBox.Show("This member has no recorded payment in the selected cycle.", "Nothing to Delete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
+			using PaymentDeleteAuthenticationDialog authentication = new PaymentDeleteAuthenticationDialog(db, currentUsername);
+			if (authentication.ShowDialog(this) != DialogResult.OK) return;
+			CollectionCycle cycle = (CollectionCycle)paymentCycle.SelectedItem;
+			string receiptText = string.IsNullOrWhiteSpace(payment.ReceiptNumber) ? "No receipt number" : "Receipt " + payment.ReceiptNumber;
+			if (MessageBox.Show($"Permanently delete this payment?\n\nMember: {payment.MemberName}\nCycle: {cycle.Name}\nAmount: ₱{payment.Paid:N2}\n{receiptText}", "Confirm Payment Deletion", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes) return;
+			try
+			{
+				if (!db.DeletePayment(memberId, cycle.Id))
+				{
+					MessageBox.Show("The payment was not found. Refresh the list and try again.", "Payment Not Deleted", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+					return;
+				}
+				RefreshPayments();
+				MessageBox.Show("Payment deleted successfully.", "Payment Deleted", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show("Could not delete the payment.\n" + ex.Message, "Payment Not Deleted", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
 		}
 	}
 

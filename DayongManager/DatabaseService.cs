@@ -39,6 +39,9 @@ public sealed class DatabaseService
 		AddColumn(sqliteConnection, "Members", "ServiceDate", "TEXT NULL");
 		AddColumn(sqliteConnection, "Members", "ClaimReceivedDate", "TEXT NULL");
 		AddColumn(sqliteConnection, "Members", "ClaimReceivedBy", "TEXT NOT NULL DEFAULT ''");
+		AddColumn(sqliteConnection, "Members", "DateOfDeath", "TEXT NULL");
+		AddColumn(sqliteConnection, "CollectionCycles", "StartDate", "TEXT NULL");
+		AddColumn(sqliteConnection, "Payments", "ReceiptNumber", "TEXT NOT NULL DEFAULT ''");
 		using SqliteCommand sqliteCommand2 = sqliteConnection.CreateCommand();
 		sqliteCommand2.CommandText = "CREATE TABLE IF NOT EXISTS AppUsers(Id INTEGER PRIMARY KEY AUTOINCREMENT,Username TEXT NOT NULL UNIQUE COLLATE NOCASE,PasswordHash TEXT NOT NULL,PasswordSalt TEXT NOT NULL,Active INTEGER NOT NULL DEFAULT 1)";
 		sqliteCommand2.ExecuteNonQuery();
@@ -331,7 +334,7 @@ public sealed class DatabaseService
 	{
 		using SqliteConnection sqliteConnection = Open();
 		using SqliteCommand sqliteCommand = sqliteConnection.CreateCommand();
-		sqliteCommand.CommandText = "SELECT Id,LastName,FirstName,MiddleName,Address,BirthDate,Council,Active,MembershipType,SponsorName,ContactNumber,BeneficiaryName,BeneficiaryContact,IsFourthDegree,MemberStatus,Remarks,RegistrationDate,StartCycleId,ClaimedBenefits,ServiceDate,ClaimReceivedDate,ClaimReceivedBy FROM Members WHERE ($c='All Councils' OR Council=$c) AND ($q='' OR LastName LIKE $like OR FirstName LIKE $like OR MiddleName LIKE $like) ORDER BY Council,LastName,FirstName";
+		sqliteCommand.CommandText = "SELECT Id,LastName,FirstName,MiddleName,Address,BirthDate,Council,Active,MembershipType,SponsorName,ContactNumber,BeneficiaryName,BeneficiaryContact,IsFourthDegree,MemberStatus,Remarks,RegistrationDate,StartCycleId,ClaimedBenefits,ServiceDate,ClaimReceivedDate,ClaimReceivedBy,DateOfDeath FROM Members WHERE ($c='All Councils' OR Council=$c) AND ($q='' OR LastName LIKE $like OR FirstName LIKE $like OR MiddleName LIKE $like) ORDER BY Council,LastName,FirstName";
 		sqliteCommand.Parameters.AddWithValue("$c", council);
 		sqliteCommand.Parameters.AddWithValue("$q", search);
 		sqliteCommand.Parameters.AddWithValue("$like", "%" + search + "%");
@@ -362,7 +365,8 @@ public sealed class DatabaseService
 				ClaimedBenefits = sqliteDataReader.GetString(18),
 				ServiceDate = (sqliteDataReader.IsDBNull(19) ? ((DateTime?)null) : new DateTime?(DateTime.Parse(sqliteDataReader.GetString(19)))),
 				ClaimReceivedDate = (sqliteDataReader.IsDBNull(20) ? ((DateTime?)null) : new DateTime?(DateTime.Parse(sqliteDataReader.GetString(20)))),
-				ClaimReceivedBy = sqliteDataReader.GetString(21)
+				ClaimReceivedBy = sqliteDataReader.GetString(21),
+				DateOfDeath = (sqliteDataReader.IsDBNull(22) ? ((DateTime?)null) : new DateTime?(DateTime.Parse(sqliteDataReader.GetString(22))))
 			});
 		}
 		return list;
@@ -386,7 +390,7 @@ public sealed class DatabaseService
 	{
 		using SqliteConnection sqliteConnection = Open();
 		using SqliteCommand sqliteCommand = sqliteConnection.CreateCommand();
-		sqliteCommand.CommandText = ((m.Id == 0L) ? "INSERT INTO Members(LastName,FirstName,MiddleName,Address,BirthDate,Council,Active,MembershipType,SponsorName,ContactNumber,BeneficiaryName,BeneficiaryContact,IsFourthDegree,MemberStatus,Remarks,RegistrationDate,StartCycleId,ClaimedBenefits,ServiceDate,ClaimReceivedDate,ClaimReceivedBy) VALUES($l,$f,$m,$a,$b,$c,$x,$mt,$sn,$cn,$bn,$bc,$fd,$st,$rm,$rd,$sc,$cb,$sd,$cd,$cr); SELECT last_insert_rowid();" : "UPDATE Members SET LastName=$l,FirstName=$f,MiddleName=$m,Address=$a,BirthDate=$b,Council=$c,Active=$x,MembershipType=$mt,SponsorName=$sn,ContactNumber=$cn,BeneficiaryName=$bn,BeneficiaryContact=$bc,IsFourthDegree=$fd,MemberStatus=$st,Remarks=$rm,RegistrationDate=$rd,StartCycleId=$sc,ClaimedBenefits=$cb,ServiceDate=$sd,ClaimReceivedDate=$cd,ClaimReceivedBy=$cr WHERE Id=$id; SELECT $id;");
+		sqliteCommand.CommandText = ((m.Id == 0L) ? "INSERT INTO Members(LastName,FirstName,MiddleName,Address,BirthDate,Council,Active,MembershipType,SponsorName,ContactNumber,BeneficiaryName,BeneficiaryContact,IsFourthDegree,MemberStatus,Remarks,RegistrationDate,StartCycleId,ClaimedBenefits,ServiceDate,ClaimReceivedDate,ClaimReceivedBy,DateOfDeath) VALUES($l,$f,$m,$a,$b,$c,$x,$mt,$sn,$cn,$bn,$bc,$fd,$st,$rm,$rd,$sc,$cb,$sd,$cd,$cr,$dd); SELECT last_insert_rowid();" : "UPDATE Members SET LastName=$l,FirstName=$f,MiddleName=$m,Address=$a,BirthDate=$b,Council=$c,Active=$x,MembershipType=$mt,SponsorName=$sn,ContactNumber=$cn,BeneficiaryName=$bn,BeneficiaryContact=$bc,IsFourthDegree=$fd,MemberStatus=$st,Remarks=$rm,RegistrationDate=$rd,StartCycleId=$sc,ClaimedBenefits=$cb,ServiceDate=$sd,ClaimReceivedDate=$cd,ClaimReceivedBy=$cr,DateOfDeath=$dd WHERE Id=$id; SELECT $id;");
 		sqliteCommand.Parameters.AddWithValue("$l", m.LastName.Trim());
 		sqliteCommand.Parameters.AddWithValue("$f", m.FirstName.Trim());
 		sqliteCommand.Parameters.AddWithValue("$m", m.MiddleName.Trim());
@@ -409,6 +413,7 @@ public sealed class DatabaseService
 		sqliteCommand.Parameters.AddWithValue("$sd", ((object)m.ServiceDate?.ToString("yyyy-MM-dd")) ?? ((object)DBNull.Value));
 		sqliteCommand.Parameters.AddWithValue("$cd", ((object)m.ClaimReceivedDate?.ToString("yyyy-MM-dd")) ?? ((object)DBNull.Value));
 		sqliteCommand.Parameters.AddWithValue("$cr", m.ClaimReceivedBy.Trim());
+		sqliteCommand.Parameters.AddWithValue("$dd", ((object)m.DateOfDeath?.ToString("yyyy-MM-dd")) ?? DBNull.Value);
 		return Convert.ToInt64(sqliteCommand.ExecuteScalar());
 	}
 
@@ -425,7 +430,7 @@ public sealed class DatabaseService
 	{
 		using SqliteConnection sqliteConnection = Open();
 		using SqliteCommand sqliteCommand = sqliteConnection.CreateCommand();
-		sqliteCommand.CommandText = "SELECT Id,Name,Type,ExpectedAmount,DueDate,Active FROM CollectionCycles ORDER BY Id DESC";
+		sqliteCommand.CommandText = "SELECT Id,Name,Type,ExpectedAmount,DueDate,Active,StartDate FROM CollectionCycles ORDER BY Id DESC";
 		using SqliteDataReader sqliteDataReader = sqliteCommand.ExecuteReader();
 		List<CollectionCycle> list = new List<CollectionCycle>();
 		while (sqliteDataReader.Read())
@@ -437,7 +442,8 @@ public sealed class DatabaseService
 				Type = sqliteDataReader.GetString(2),
 				ExpectedAmount = sqliteDataReader.GetDecimal(3),
 				DueDate = (sqliteDataReader.IsDBNull(4) ? ((DateTime?)null) : new DateTime?(DateTime.Parse(sqliteDataReader.GetString(4)))),
-				Active = sqliteDataReader.GetBoolean(5)
+				Active = sqliteDataReader.GetBoolean(5),
+				StartDate = (sqliteDataReader.IsDBNull(6) ? ((DateTime?)null) : new DateTime?(DateTime.Parse(sqliteDataReader.GetString(6))))
 			});
 		}
 		return list;
@@ -447,11 +453,12 @@ public sealed class DatabaseService
 	{
 		using SqliteConnection sqliteConnection = Open();
 		using SqliteCommand sqliteCommand = sqliteConnection.CreateCommand();
-		sqliteCommand.CommandText = ((x.Id == 0L) ? "INSERT INTO CollectionCycles(Name,Type,ExpectedAmount,DueDate,Active) VALUES($n,$t,$a,$d,$x); SELECT last_insert_rowid();" : "UPDATE CollectionCycles SET Name=$n,Type=$t,ExpectedAmount=$a,DueDate=$d,Active=$x WHERE Id=$id; SELECT $id;");
+		sqliteCommand.CommandText = ((x.Id == 0L) ? "INSERT INTO CollectionCycles(Name,Type,ExpectedAmount,DueDate,Active,StartDate) VALUES($n,$t,$a,$d,$x,$s); SELECT last_insert_rowid();" : "UPDATE CollectionCycles SET Name=$n,Type=$t,ExpectedAmount=$a,DueDate=$d,Active=$x,StartDate=$s WHERE Id=$id; SELECT $id;");
 		sqliteCommand.Parameters.AddWithValue("$n", x.Name.Trim());
 		sqliteCommand.Parameters.AddWithValue("$t", x.Type);
 		sqliteCommand.Parameters.AddWithValue("$a", x.ExpectedAmount);
 		sqliteCommand.Parameters.AddWithValue("$d", ((object)x.DueDate?.ToString("yyyy-MM-dd")) ?? ((object)DBNull.Value));
+		sqliteCommand.Parameters.AddWithValue("$s", ((object)x.StartDate?.ToString("yyyy-MM-dd")) ?? DBNull.Value);
 		sqliteCommand.Parameters.AddWithValue("$x", x.Active);
 		sqliteCommand.Parameters.AddWithValue("$id", x.Id);
 		return Convert.ToInt64(sqliteCommand.ExecuteScalar());
@@ -470,7 +477,25 @@ public sealed class DatabaseService
 	{
 		using SqliteConnection sqliteConnection = Open();
 		using SqliteCommand sqliteCommand = sqliteConnection.CreateCommand();
-		sqliteCommand.CommandText = "SELECT COALESCE(P.Id,0),M.Id,M.LastName||', '||M.FirstName||CASE WHEN M.MiddleName='' THEN '' ELSE ' '||M.MiddleName END,M.Council,C.ExpectedAmount,COALESCE(P.Amount,0),P.DatePaid FROM Members M CROSS JOIN CollectionCycles C LEFT JOIN Payments P ON P.MemberId=M.Id AND P.CycleId=C.Id WHERE C.Id=$id AND M.Active=1 AND (C.Type<>'Dayong' OR M.StartCycleId IS NULL OR C.Id>=M.StartCycleId) AND ($c='All Councils' OR M.Council=$c) ORDER BY M.Council,M.LastName,M.FirstName";
+		sqliteCommand.CommandText = @"SELECT COALESCE(P.Id,0),M.Id,
+			M.LastName||', '||M.FirstName||CASE WHEN M.MiddleName='' THEN '' ELSE ' '||M.MiddleName END,
+			M.Council,C.ExpectedAmount,COALESCE(P.Amount,0),P.DatePaid,COALESCE(P.ReceiptNumber,'')
+			FROM Members M CROSS JOIN CollectionCycles C
+			LEFT JOIN Payments P ON P.MemberId=M.Id AND P.CycleId=C.Id
+			WHERE C.Id=$id
+			AND (
+				M.Active=1
+				OR (M.MemberStatus='Deceased' AND M.DateOfDeath IS NOT NULL
+					AND COALESCE(C.StartDate,C.DueDate,P.DatePaid) IS NOT NULL
+					AND date(COALESCE(C.StartDate,C.DueDate,P.DatePaid))<=date(M.DateOfDeath))
+			)
+			AND (C.Type<>'Dayong' OR M.StartCycleId IS NULL OR C.Id>=M.StartCycleId)
+			AND (C.Type<>'Registration Fee' OR P.Id IS NOT NULL OR C.Id=COALESCE(
+				(SELECT MIN(CR.Id) FROM CollectionCycles CR WHERE CR.Type='Registration Fee' AND M.RegistrationDate IS NOT NULL
+					AND (instr(CR.Name,substr(M.RegistrationDate,1,4))>0 OR substr(COALESCE(CR.StartDate,CR.DueDate),1,4)=substr(M.RegistrationDate,1,4))),
+				(SELECT MIN(CR.Id) FROM CollectionCycles CR WHERE CR.Type='Registration Fee')))
+			AND ($c='All Councils' OR M.Council=$c)
+			ORDER BY M.Council,M.LastName,M.FirstName";
 		sqliteCommand.Parameters.AddWithValue("$id", cycleId);
 		sqliteCommand.Parameters.AddWithValue("$c", council);
 		using SqliteDataReader sqliteDataReader = sqliteCommand.ExecuteReader();
@@ -485,29 +510,141 @@ public sealed class DatabaseService
 				Council = sqliteDataReader.GetString(3),
 				Expected = sqliteDataReader.GetDecimal(4),
 				Paid = sqliteDataReader.GetDecimal(5),
-				DatePaid = (sqliteDataReader.IsDBNull(6) ? ((DateTime?)null) : new DateTime?(DateTime.Parse(sqliteDataReader.GetString(6))))
+				DatePaid = (sqliteDataReader.IsDBNull(6) ? ((DateTime?)null) : new DateTime?(DateTime.Parse(sqliteDataReader.GetString(6)))),
+				ReceiptNumber = sqliteDataReader.GetString(7)
 			});
 		}
 		return list;
 	}
 
-	public void SavePayment(long memberId, long cycleId, decimal amount, DateTime? date)
+	public List<PaymentDue> GetMemberDues(long memberId, long selectedCycleId)
+	{
+		using SqliteConnection cn = Open();
+		using SqliteCommand cmd = cn.CreateCommand();
+		cmd.CommandText = @"SELECT C.Id,C.Name,C.Type,C.ExpectedAmount,COALESCE(P.Amount,0),
+			CASE WHEN C.Id=$selected THEN 1 ELSE 0 END
+			FROM Members M CROSS JOIN CollectionCycles C
+			LEFT JOIN Payments P ON P.MemberId=M.Id AND P.CycleId=C.Id
+			WHERE M.Id=$member
+			AND (C.Id=$selected OR COALESCE(P.Amount,0)<C.ExpectedAmount)
+			AND (C.Id=$selected OR C.Active=1)
+			AND (C.Type<>'Dayong' OR M.StartCycleId IS NULL OR C.Id>=M.StartCycleId)
+			AND (C.Type<>'Registration Fee' OR P.Id IS NOT NULL OR C.Id=COALESCE(
+				(SELECT MIN(CR.Id) FROM CollectionCycles CR WHERE CR.Type='Registration Fee' AND M.RegistrationDate IS NOT NULL
+					AND (instr(CR.Name,substr(M.RegistrationDate,1,4))>0 OR substr(COALESCE(CR.StartDate,CR.DueDate),1,4)=substr(M.RegistrationDate,1,4))),
+				(SELECT MIN(CR.Id) FROM CollectionCycles CR WHERE CR.Type='Registration Fee')))
+			AND (M.DateOfDeath IS NULL OR COALESCE(C.StartDate,C.DueDate,P.DatePaid) IS NULL
+				OR date(COALESCE(C.StartDate,C.DueDate,P.DatePaid))<=date(M.DateOfDeath))
+			ORDER BY CASE C.Type WHEN 'Registration Fee' THEN 0 WHEN 'Annual Dues' THEN 1 ELSE 2 END,
+				COALESCE(C.StartDate,C.DueDate,'9999-12-31'),C.Id";
+		cmd.Parameters.AddWithValue("$member", memberId);
+		cmd.Parameters.AddWithValue("$selected", selectedCycleId);
+		using SqliteDataReader reader = cmd.ExecuteReader();
+		List<PaymentDue> dues = new List<PaymentDue>();
+		while (reader.Read())
+		{
+			dues.Add(new PaymentDue
+			{
+				CycleId = reader.GetInt64(0), CycleName = reader.GetString(1), Type = reader.GetString(2),
+				Required = reader.GetDecimal(3), PreviouslyPaid = reader.GetDecimal(4), IsSelectedCycle = reader.GetInt32(5) == 1
+			});
+		}
+		return dues;
+	}
+
+	public void SavePayment(long memberId, long cycleId, decimal amount, DateTime? date, string receiptNumber = "")
+	{
+		SavePayments(memberId, new List<(long CycleId, decimal NewTotal)> { (cycleId, amount) }, date, receiptNumber);
+	}
+
+	public void SavePayments(long memberId, IEnumerable<(long CycleId, decimal NewTotal)> allocations, DateTime? date, string receiptNumber)
 	{
 		using SqliteConnection sqliteConnection = Open();
+		using SqliteTransaction transaction = sqliteConnection.BeginTransaction();
 		using SqliteCommand sqliteCommand = sqliteConnection.CreateCommand();
-		sqliteCommand.CommandText = "INSERT INTO Payments(MemberId,CycleId,Amount,DatePaid) VALUES($m,$c,$a,$d) ON CONFLICT(MemberId,CycleId) DO UPDATE SET Amount=$a,DatePaid=$d; UPDATE Members SET StartCycleId=$c WHERE Id=$m AND StartCycleId IS NULL AND EXISTS(SELECT 1 FROM CollectionCycles WHERE Id=$c AND Type='Dayong')";
+		sqliteCommand.Transaction = transaction;
+		sqliteCommand.CommandText = "INSERT INTO Payments(MemberId,CycleId,Amount,DatePaid,ReceiptNumber) VALUES($m,$c,$a,$d,$r) ON CONFLICT(MemberId,CycleId) DO UPDATE SET Amount=$a,DatePaid=$d,ReceiptNumber=$r; UPDATE Members SET StartCycleId=$c WHERE Id=$m AND StartCycleId IS NULL AND EXISTS(SELECT 1 FROM CollectionCycles WHERE Id=$c AND Type='Dayong')";
 		sqliteCommand.Parameters.AddWithValue("$m", memberId);
-		sqliteCommand.Parameters.AddWithValue("$c", cycleId);
-		sqliteCommand.Parameters.AddWithValue("$a", amount);
 		sqliteCommand.Parameters.AddWithValue("$d", ((object)date?.ToString("yyyy-MM-dd")) ?? ((object)DBNull.Value));
-		sqliteCommand.ExecuteNonQuery();
+		sqliteCommand.Parameters.AddWithValue("$r", receiptNumber.Trim());
+		SqliteParameter cycleParameter = sqliteCommand.Parameters.Add("$c", SqliteType.Integer);
+		SqliteParameter amountParameter = sqliteCommand.Parameters.Add("$a", SqliteType.Real);
+		foreach ((long cycleId, decimal newTotal) in allocations)
+		{
+			cycleParameter.Value = cycleId;
+			amountParameter.Value = newTotal;
+			sqliteCommand.ExecuteNonQuery();
+		}
+		transaction.Commit();
+	}
+
+	public bool DeletePayment(long memberId, long cycleId)
+	{
+		using SqliteConnection connection = Open();
+		using SqliteCommand command = connection.CreateCommand();
+		command.CommandText = "DELETE FROM Payments WHERE MemberId=$member AND CycleId=$cycle";
+		command.Parameters.AddWithValue("$member", memberId);
+		command.Parameters.AddWithValue("$cycle", cycleId);
+		return command.ExecuteNonQuery() > 0;
+	}
+
+	public LanSyncSnapshot SynchronizeMobilePayments(IEnumerable<LanSyncPayment> mobilePayments)
+	{
+		using (SqliteConnection connection = Open())
+		using (SqliteTransaction transaction = connection.BeginTransaction())
+		using (SqliteCommand command = connection.CreateCommand())
+		{
+			command.Transaction = transaction;
+			command.CommandText = @"INSERT INTO Payments(MemberId,CycleId,Amount,DatePaid,ReceiptNumber)
+				SELECT $member,$cycle,$amount,$date,$receipt
+				WHERE EXISTS(SELECT 1 FROM Members WHERE Id=$member) AND EXISTS(SELECT 1 FROM CollectionCycles WHERE Id=$cycle)
+				ON CONFLICT(MemberId,CycleId) DO UPDATE SET
+				Amount=MAX(Payments.Amount,excluded.Amount),
+				DatePaid=CASE WHEN date(excluded.DatePaid)>=date(Payments.DatePaid) THEN excluded.DatePaid ELSE Payments.DatePaid END,
+				ReceiptNumber=CASE WHEN date(excluded.DatePaid)>=date(Payments.DatePaid) AND excluded.ReceiptNumber<>'' THEN excluded.ReceiptNumber ELSE Payments.ReceiptNumber END";
+			foreach (LanSyncPayment payment in mobilePayments)
+			{
+				command.Parameters.Clear(); command.Parameters.AddWithValue("$member", payment.MemberId); command.Parameters.AddWithValue("$cycle", payment.CycleId);
+				command.Parameters.AddWithValue("$amount", payment.Amount); command.Parameters.AddWithValue("$date", payment.DatePaid.ToString("yyyy-MM-dd")); command.Parameters.AddWithValue("$receipt", payment.ReceiptNumber ?? ""); command.ExecuteNonQuery();
+			}
+			transaction.Commit();
+		}
+		return GetLanSyncSnapshot();
+	}
+
+	private LanSyncSnapshot GetLanSyncSnapshot()
+	{
+		LanSyncSnapshot snapshot = new LanSyncSnapshot();
+		snapshot.Members = GetMembers().Select(m => new LanSyncMember { Id=m.Id,LastName=m.LastName,FirstName=m.FirstName,Council=m.Council,RegistrationDate=m.RegistrationDate ?? DateTime.Today,StartCycleId=m.StartCycleId,Status=m.MemberStatus,DateOfDeath=m.DateOfDeath }).ToList();
+		snapshot.Cycles = GetCycles().Select(c => new LanSyncCycle { Id=c.Id,Name=c.Name,Type=c.Type,ExpectedAmount=c.ExpectedAmount,StartDate=c.StartDate,DueDate=c.DueDate,Active=c.Active }).ToList();
+		using SqliteConnection connection = Open(); using SqliteCommand command = connection.CreateCommand();
+		command.CommandText = "SELECT Id,MemberId,CycleId,Amount,DatePaid,COALESCE(ReceiptNumber,'') FROM Payments";
+		using SqliteDataReader reader = command.ExecuteReader();
+		while (reader.Read()) snapshot.Payments.Add(new LanSyncPayment { Id=reader.GetInt64(0),MemberId=reader.GetInt64(1),CycleId=reader.GetInt64(2),Amount=reader.GetDecimal(3),DatePaid=reader.IsDBNull(4)?DateTime.Today:DateTime.Parse(reader.GetString(4)),ReceiptNumber=reader.GetString(5) });
+		return snapshot;
 	}
 
 	public (int members, int paid, decimal collected, decimal expected) Dashboard(long? cycleId = null)
 	{
 		using SqliteConnection sqliteConnection = Open();
 		using SqliteCommand sqliteCommand = sqliteConnection.CreateCommand();
-		sqliteCommand.CommandText = (cycleId.HasValue ? "SELECT COUNT(M.Id),SUM(CASE WHEN COALESCE(P.Amount,0)>=C.ExpectedAmount THEN 1 ELSE 0 END),COALESCE(SUM(P.Amount),0),COUNT(M.Id)*C.ExpectedAmount FROM Members M CROSS JOIN CollectionCycles C LEFT JOIN Payments P ON P.MemberId=M.Id AND P.CycleId=C.Id WHERE M.Active=1 AND C.Id=$id AND (C.Type<>'Dayong' OR M.StartCycleId IS NULL OR C.Id>=M.StartCycleId)" : "SELECT COUNT(*),0,0,0 FROM Members WHERE Active=1");
+		sqliteCommand.CommandText = (cycleId.HasValue ? @"SELECT COUNT(M.Id),
+			SUM(CASE WHEN COALESCE(P.Amount,0)>=C.ExpectedAmount THEN 1 ELSE 0 END),
+			COALESCE(SUM(P.Amount),0),COUNT(M.Id)*C.ExpectedAmount
+			FROM Members M CROSS JOIN CollectionCycles C
+			LEFT JOIN Payments P ON P.MemberId=M.Id AND P.CycleId=C.Id
+			WHERE C.Id=$id
+			AND (
+				M.Active=1
+				OR (M.MemberStatus='Deceased' AND M.DateOfDeath IS NOT NULL
+					AND COALESCE(C.StartDate,C.DueDate,P.DatePaid) IS NOT NULL
+					AND date(COALESCE(C.StartDate,C.DueDate,P.DatePaid))<=date(M.DateOfDeath))
+			)
+			AND (C.Type<>'Dayong' OR M.StartCycleId IS NULL OR C.Id>=M.StartCycleId)
+			AND (C.Type<>'Registration Fee' OR P.Id IS NOT NULL OR C.Id=COALESCE(
+				(SELECT MIN(CR.Id) FROM CollectionCycles CR WHERE CR.Type='Registration Fee' AND M.RegistrationDate IS NOT NULL
+					AND (instr(CR.Name,substr(M.RegistrationDate,1,4))>0 OR substr(COALESCE(CR.StartDate,CR.DueDate),1,4)=substr(M.RegistrationDate,1,4))),
+				(SELECT MIN(CR.Id) FROM CollectionCycles CR WHERE CR.Type='Registration Fee')))" : "SELECT COUNT(*),0,0,0 FROM Members WHERE Active=1");
 		sqliteCommand.Parameters.AddWithValue("$id", cycleId.GetValueOrDefault());
 		using SqliteDataReader sqliteDataReader = sqliteCommand.ExecuteReader();
 		sqliteDataReader.Read();

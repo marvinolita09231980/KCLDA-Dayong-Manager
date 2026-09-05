@@ -11,8 +11,10 @@
     <LangVersion>12.0</LangVersion>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+	<DefaultItemExcludes>$(DefaultItemExcludes);KCLDA.DayongManager.Mobile\**</DefaultItemExcludes>
   </PropertyGroup>
   <ItemGroup>
+	<FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="ClosedXML" Version="0.104.2" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
     <Compile Remove="Properties\AssemblyInfo.cs" />

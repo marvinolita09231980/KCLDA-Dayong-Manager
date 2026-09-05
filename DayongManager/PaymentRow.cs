@@ -18,6 +18,8 @@ public sealed class PaymentRow
 
 	public DateTime? DatePaid { get; set; }
 
+	public string ReceiptNumber { get; set; } = "";
+
 	public string Status
 	{
 		get

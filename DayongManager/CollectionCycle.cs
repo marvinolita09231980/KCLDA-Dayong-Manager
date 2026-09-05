@@ -12,6 +12,8 @@ public sealed class CollectionCycle
 
 	public decimal ExpectedAmount { get; set; }
 
+	public DateTime? StartDate { get; set; }
+
 	public DateTime? DueDate { get; set; }
 
 	public bool Active { get; set; } = true;
