@@ -18,9 +18,17 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
 
-    public static function canAccess(): bool { return (bool) auth()->user()?->is_admin; }
+    protected static string|\UnitEnum|null $navigationGroup = 'Administration';
+    protected static ?int $navigationSort = 6;
+
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+
+        return (bool) ($user?->is_admin || $user?->hasRole('super_admin'));
+    }
 
     public static function form(Schema $schema): Schema
     {

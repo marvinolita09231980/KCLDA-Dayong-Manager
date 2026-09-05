@@ -8,6 +8,9 @@ use Illuminate\Validation\ValidationException;
 
 class Login extends \Filament\Auth\Pages\Login
 {
+    public function getHeading(): string { return 'Welcome back'; }
+    public function getSubheading(): ?string { return 'Sign in to care for your community.'; }
+
     protected function getEmailFormComponent(): Component
     {
         return TextInput::make('username')->label('Username')->required()->autocomplete('username')->autofocus();

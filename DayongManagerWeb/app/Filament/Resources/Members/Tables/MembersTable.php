@@ -15,31 +15,31 @@ class MembersTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->columns([
-                TextColumn::make('full_name')->label('Member')->state(fn ($record) => $record->full_name)->searchable(['last_name','first_name','middle_name'])->sortable(['last_name','first_name']),
-                TextColumn::make('birth_date')
+            ->striped()->paginationPageOptions([10, 25, 50])->defaultPaginationPageOption(10)->columns([
+                TextColumn::make('full_name')->label('Member')->description(fn ($record) => $record->council)->wrap()->state(fn ($record) => $record->full_name)->searchable(['last_name','first_name','middle_name'])->sortable(['last_name','first_name']),
+                TextColumn::make('birth_date')->toggleable(isToggledHiddenByDefault: true)
                     ->date()
                     ->sortable(),
-                TextColumn::make('council')
+                TextColumn::make('council')->visibleFrom('md')
                     ->searchable(),
-                TextColumn::make('membership_type')
+                TextColumn::make('membership_type')->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('sponsor_name')->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
-                TextColumn::make('contact_number')
+                TextColumn::make('contact_number')->visibleFrom('md')
                     ->searchable(),
                 TextColumn::make('beneficiary_name')->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('beneficiary_contact')->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
-                IconColumn::make('is_fourth_degree')
+                IconColumn::make('is_fourth_degree')->toggleable(isToggledHiddenByDefault: true)
                     ->boolean(),
                 TextColumn::make('member_status')
                     ->badge()->color(fn (string $state) => match ($state) {'Active'=>'success','Inactive'=>'warning','Expelled'=>'danger','Deceased'=>'gray',default=>'gray'}),
-                TextColumn::make('registration_date')
+                TextColumn::make('registration_date')->toggleable(isToggledHiddenByDefault: true)
                     ->date()
                     ->sortable(),
-                TextColumn::make('startCycle.name')
+                TextColumn::make('startCycle.name')->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('date_of_death')->toggleable(isToggledHiddenByDefault: true)
                     ->date()

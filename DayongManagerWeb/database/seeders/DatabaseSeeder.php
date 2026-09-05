@@ -16,12 +16,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::updateOrCreate(['username' => 'admin'], [
+        User::firstOrCreate(['username' => 'admin'], [
             'name' => 'System Administrator',
             'password' => 'Dayong@2026',
             'active' => true,
             'is_admin' => true,
         ]);
+        $this->call(RolesAndPermissionsSeeder::class);
         CollectionCycle::firstOrCreate(['name' => 'CY 2026 Registration Fee'], ['type'=>'Registration Fee','expected_amount'=>100,'due_date'=>'2026-12-31','active'=>true]);
         CollectionCycle::firstOrCreate(['name' => 'CY 2026 Annual Dues (Optional)'], ['type'=>'Annual Dues','expected_amount'=>100,'due_date'=>'2026-12-31','active'=>true]);
     }

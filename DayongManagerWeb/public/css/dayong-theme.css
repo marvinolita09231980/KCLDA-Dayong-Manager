@@ -1,0 +1,124 @@
+/* KCLDA Dayong: local assets, responsive layouts, and accessible focus states. */
+:root {
+    --dayong-navy: #142b46;
+    --dayong-deep: #0c1e33;
+    --dayong-gold: #e4be70;
+    --dayong-ink: #1e3046;
+    --dayong-muted: #64748b;
+    --dayong-line: #e4e8ed;
+}
+.fi-body { background: #f4f5f7; color: var(--dayong-ink); font-family: "Segoe UI", system-ui, sans-serif; }
+.fi-main { max-width: 1600px; }
+.fi-main-ctn, .fi-page, .fi-sc, .fi-wi { min-width: 0; }
+.fi-topbar { background: #fff; border-bottom: 1px solid var(--dayong-line); box-shadow: none; }
+.dayong-brand { display: flex; align-items: center; gap: 11px; text-align: left; color: var(--dayong-navy); }
+.dayong-mark { width: 33px; height: 39px; color: #aa7b29; flex-shrink: 0; }
+.dayong-mark svg { width: 100%; height: 100%; }
+.dayong-brand strong { display: block; font-size: 19px; line-height: 1.15; font-weight: 800; letter-spacing: .19em; }
+.dayong-brand small { display: block; margin-top: 5px; font-size: 8px; font-weight: 650; letter-spacing: .14em; white-space: nowrap; }
+.fi-sidebar { background: var(--dayong-deep) !important; border-right: 1px solid #243a52; }
+.fi-sidebar-nav { padding: 26px 16px; }
+.fi-sidebar-group-label { color: #91a6bd; font-size: 10px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+.fi-sidebar-item-label, .fi-sidebar-item .fi-icon { color: #c5d2e1; }
+.fi-sidebar-item-btn { min-height: 46px; border-radius: 9px; transition: background .15s ease; }
+.fi-sidebar-item-btn:hover { background: #213951 !important; }
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn { background: #294159; box-shadow: inset 3px 0 var(--dayong-gold); }
+.fi-sidebar-item.fi-active .fi-sidebar-item-label, .fi-sidebar-item.fi-active .fi-icon { color: #f1cd88; }
+.fi-sidebar-header { background: var(--dayong-deep) !important; }
+.fi-sidebar-header .dayong-brand { color: #fff; }
+.fi-header-heading { color: var(--dayong-navy); letter-spacing: -.035em; font-size: clamp(1.6rem, 2.5vw, 2rem); }
+.fi-header-subheading { color: var(--dayong-muted); }
+.fi-page { row-gap: 24px; }
+.fi-section, .fi-ta-ctn, .fi-wi-stats-overview-stat { border-radius: 14px; box-shadow: 0 2px 5px #142b4604; border: 1px solid var(--dayong-line); --tw-ring-shadow: 0 0 #0000; }
+.fi-section-header { border-bottom-color: var(--dayong-line); }
+.fi-section-header-heading { color: var(--dayong-navy); }
+.fi-btn { border-radius: 8px; min-height: 40px; font-weight: 650; }
+.fi-input-wrp { border-radius: 8px; }
+.fi-input { min-height: 40px; }
+.fi-fo-field-label-content { font-weight: 650; color: #35475c; }
+.fi-ta-header-cell { background: #f8fafc; color: #65738a; font-size: 11px; letter-spacing: .025em; }
+.fi-ta-cell { padding-top: 14px; padding-bottom: 14px; }
+.fi-ta-row:hover { background: #f8fafc; }
+.fi-ta-content { overflow-x: auto; overscroll-behavior-inline: contain; }
+.fi-ta-text-item { font-size: 13px; }
+.fi-ta-header-heading { color: var(--dayong-navy); }
+.fi-wi-stats-overview-stat { padding: 23px; position: relative; overflow: hidden; }
+.fi-wi-stats-overview-stat::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #c9a151; }
+.fi-wi-stats-overview-stat-value { color: var(--dayong-navy); font-size: clamp(1.5rem, 2.3vw, 2rem); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.fi-wi-stats-overview-stat-label { font-size: 12px; font-weight: 650; }
+.fi-wi-stats-overview-stat-description { font-size: 11px; }
+.dayong-welcome { display: flex; justify-content: space-between; align-items: center; gap: 32px; padding: 36px 40px; border-radius: 18px; background: radial-gradient(ellipse at top right, #344b65, transparent 60%), var(--dayong-navy); color: #fff; position: relative; overflow: hidden; border-bottom: 3px solid #bf974f; }
+.dayong-welcome::after { content: ""; position: absolute; width: 390px; height: 390px; border: 1px solid #ffffff0c; border-radius: 50%; right: -160px; top: -100px; pointer-events: none; }
+.dayong-eyebrow { font-size: 10px; line-height: 1.5; font-weight: 750; letter-spacing: .15em; color: #8a672f; margin: 0 0 8px; }
+.dayong-welcome .dayong-eyebrow { color: #e4be70; }
+.dayong-welcome h2 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 400; line-height: 1.16; letter-spacing: -.025em; margin: 14px 0; }
+.dayong-welcome-copy > p:last-of-type { max-width: 490px; color: #c6d2df; font-size: 13px; line-height: 1.8; }
+.dayong-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 25px; }
+.dayong-button { display: inline-flex; align-items: center; justify-content: center; gap: 14px; min-height: 43px; padding: 10px 18px; border-radius: 7px; font-size: 12px; font-weight: 700; text-decoration: none; transition: background .15s; }
+.dayong-button-gold { background: #e4be70; color: #142b46; }
+.dayong-button-gold:hover { background: #f1d39c; }
+.dayong-button-outline { border: 1px solid #708097; color: #fff; }
+.dayong-button-outline:hover { background: #ffffff12; }
+.dayong-principles { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 0 35px; font-size: 9px; font-weight: 650; letter-spacing: .23em; color: #e9c987; }
+.dayong-principles-cross { font-size: 55px; line-height: 1; margin-bottom: 12px; }
+.dayong-activity-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 24px; }
+.dayong-card { min-width: 0; background: #fff; border: 1px solid var(--dayong-line); border-radius: 14px; overflow: hidden; }
+.dayong-card-heading { display: flex; justify-content: space-between; align-items: center; gap: 15px; padding: 24px; border-bottom: 1px solid #eef0f3; }
+.dayong-card-heading h2 { font-size: 17px; font-weight: 700; color: var(--dayong-navy); letter-spacing: -.02em; }
+.dayong-card-heading a { font-size: 12px; font-weight: 650; white-space: nowrap; color: #73551f; padding: 10px 0; }
+.dayong-payment-row { display: flex; align-items: center; gap: 12px; padding: 18px 24px; border-bottom: 1px solid #f0f2f5; }
+.dayong-payment-row:last-child { border-bottom: 0; }
+.dayong-avatar { display: grid; place-items: center; flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%; background: #eff3f7; color: #415873; font-size: 11px; font-weight: 750; }
+.dayong-payment-person { min-width: 0; flex: 1; }
+.dayong-payment-person strong, .dayong-payment-value strong { display: block; font-size: 12px; font-weight: 650; }
+.dayong-payment-person strong { overflow-wrap: anywhere; }
+.dayong-payment-person span, .dayong-payment-value span { display: block; font-size: 10px; color: var(--dayong-muted); margin-top: 5px; }
+.dayong-payment-value { text-align: right; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.dayong-payment-value strong { color: #236d59; }
+.dayong-cycle-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 20px; }
+.dayong-cycle { background: #fafaf8; border: 1px solid #ebe9e3; border-radius: 10px; padding: 16px; }
+.dayong-cycle-type { color: #866025; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.dayong-cycle h3 { font-size: 12px; line-height: 1.6; font-weight: 650; margin: 8px 0 15px; overflow-wrap: anywhere; }
+.dayong-cycle div { display: flex; flex-direction: column; gap: 4px; }
+.dayong-cycle div span { color: var(--dayong-muted); font-size: 10px; }
+.dayong-cycle strong { font-size: 16px; font-variant-numeric: tabular-nums; color: var(--dayong-navy); }
+.dayong-empty { padding: 30px 24px; font-size: 13px; color: var(--dayong-muted); }
+.dayong-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; padding: 25px 0 0; font-size: 10px; color: #65738a; }
+.fi-simple-layout { background: radial-gradient(ellipse at 10% 10%, #30475f, transparent 55%), #0c1e33; padding-inline: 16px; }
+.fi-simple-main { border-radius: 20px; padding: 38px; border-top: 4px solid #d6b066; box-shadow: 0 25px 80px #0003; }
+.fi-simple-main .dayong-brand { justify-content: center; margin-bottom: 16px; }
+.fi-simple-header-heading { font-family: Georgia, "Times New Roman", serif; color: var(--dayong-navy); font-size: 27px; }
+.fi-simple-header-subheading { font-size: 13px; line-height: 1.7; }
+a:focus-visible, button:focus-visible { outline: 3px solid #b78532; outline-offset: 4px; }
+@media (min-width: 1800px) { .fi-main { padding-inline: 48px; } }
+@media (max-width: 1100px) { .dayong-activity-grid { grid-template-columns: minmax(0, 1fr); } .dayong-principles { padding: 0 10px; } }
+@media (max-width: 767px) {
+    .fi-main { padding-inline: 16px; }
+    .fi-page { padding-top: 22px; }
+    .dayong-welcome { padding: 25px 22px; border-radius: 13px; }
+    .dayong-principles { display: none; }
+    .dayong-hero-actions { gap: 10px; }
+    .dayong-button { min-height: 44px; }
+    .dayong-card-heading { padding: 20px 16px; }
+    .dayong-payment-row { padding: 16px; gap: 10px; }
+    .dayong-cycle-list { padding: 16px; gap: 10px; }
+    .fi-btn, .fi-icon-btn { min-height: 44px; }
+    .fi-simple-main { padding: 28px 22px; margin-block: 32px; }
+    .fi-ta-toolbar { flex-wrap: wrap; gap: 12px; }
+    .fi-ta-search-field { max-width: 100%; }
+    .fi-wi-stats-overview-stat { padding: 20px; }
+}
+@media (max-width: 380px) { .dayong-avatar { display: none; } .dayong-cycle-list { grid-template-columns: 1fr; } .dayong-hero-actions { flex-direction: column; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+/* Consistent action colors, including the sign-in and record-create buttons. */
+.fi-btn.fi-color-primary:not(.fi-outlined) { background: #244569; color: #fff; }
+.fi-btn.fi-color-primary:not(.fi-outlined):hover { background: #193653; }
+.fi-btn.fi-color-primary .fi-icon { color: currentColor; }
+.fi-wi-stats-overview-stat-description { color: #63738a; }
+.fi-wi-stats-overview-stat:nth-child(3)::before { background: #9c4350; }
+.fi-wi-stats-overview-stat:nth-child(2)::before { background: #44806d; }
+.fi-wi-stats-overview-stat:nth-child(4)::before { background: #244569; }
+@media (max-width: 767px) {
+    .fi-ta-cell { padding-top: 10px; padding-bottom: 10px; }
+    .fi-ta-text-description { font-size: 11px; }
+}

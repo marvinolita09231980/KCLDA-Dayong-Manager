@@ -18,7 +18,9 @@ class DisbursementResource extends Resource
 {
     protected static ?string $model = Disbursement::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowUpTray;
+    protected static string|\UnitEnum|null $navigationGroup = 'Finance';
+    protected static ?int $navigationSort = 5;
     public static function canViewAny(): bool { return auth()->user()?->hasPermission('disbursements.view') ?? false; }
     public static function canCreate(): bool { return auth()->user()?->hasPermission('disbursements.manage') ?? false; }
     public static function canEdit($record): bool { return static::canCreate(); }

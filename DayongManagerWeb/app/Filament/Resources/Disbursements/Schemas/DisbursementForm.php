@@ -13,7 +13,7 @@ class DisbursementForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
-            ->components([
+            ->columns(['default' => 1, 'md' => 2])->components([
                 DatePicker::make('disbursement_date')
                     ->required()->default(now()),
                 TextInput::make('voucher_number')

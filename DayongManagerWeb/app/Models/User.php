@@ -10,11 +10,12 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasRoles, Notifiable;
 
     public function canAccessPanel(Panel $panel): bool
     {
@@ -23,7 +24,9 @@ class User extends Authenticatable implements FilamentUser
 
     public function hasPermission(string $permission): bool
     {
-        return $this->is_admin || in_array($permission, $this->permissions ?? [], true);
+        return $this->is_admin
+            || $this->can($permission)
+            || in_array($permission, $this->legacy_permissions ?? [], true);
     }
 
     /**
@@ -38,7 +41,7 @@ class User extends Authenticatable implements FilamentUser
         'password',
         'active',
         'is_admin',
-        'permissions',
+        'legacy_permissions',
     ];
 
     /**
@@ -63,7 +66,7 @@ class User extends Authenticatable implements FilamentUser
             'password' => 'hashed',
             'active' => 'boolean',
             'is_admin' => 'boolean',
-            'permissions' => 'array',
+            'legacy_permissions' => 'array',
         ];
     }
 }

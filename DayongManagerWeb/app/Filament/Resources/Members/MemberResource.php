@@ -18,7 +18,9 @@ class MemberResource extends Resource
 {
     protected static ?string $model = Member::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
+    protected static string|\UnitEnum|null $navigationGroup = 'Membership';
+    protected static ?int $navigationSort = 1;
     public static function canViewAny(): bool { return auth()->user()?->hasPermission('members.view') ?? false; }
     public static function canCreate(): bool { return auth()->user()?->hasPermission('members.manage') ?? false; }
     public static function canEdit($record): bool { return static::canCreate(); }

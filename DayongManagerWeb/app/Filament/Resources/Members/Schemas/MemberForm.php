@@ -15,7 +15,7 @@ class MemberForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
-            ->components([Section::make('Personal information')->columns(3)->schema([
+            ->columns(['default' => 1, 'md' => 2])->components([Section::make('Personal information')->columns(['default' => 1, 'md' => 2, 'xl' => 3])->columnSpanFull()->schema([
                 TextInput::make('last_name')
                     ->required(),
                 TextInput::make('first_name')
@@ -30,7 +30,7 @@ class MemberForm
                 DatePicker::make('birth_date'),
                 TextInput::make('council')
                     ->required(),
-            ]), Section::make('Membership')->columns(3)->schema([
+            ]), Section::make('Membership')->columns(['default' => 1, 'md' => 2, 'xl' => 3])->columnSpanFull()->schema([
                 Select::make('membership_type')->options(['Brother Knight'=>'Brother Knight','Associate Member'=>'Associate Member'])->required()->default('Brother Knight'),
                 TextInput::make('sponsor_name')
                     ->required()
@@ -54,7 +54,7 @@ class MemberForm
                 DatePicker::make('registration_date'),
                 Select::make('start_cycle_id')
                     ->relationship('startCycle', 'name')->searchable()->preload(),
-            ]), Section::make('Beneficiary and claims')->columns(3)->schema([
+            ]), Section::make('Beneficiary and claims')->columns(['default' => 1, 'md' => 2, 'xl' => 3])->columnSpanFull()->schema([
                 DatePicker::make('date_of_death')->visible(fn ($get) => $get('member_status') === 'Deceased'),
                 Textarea::make('claimed_benefits')
                     ->required()

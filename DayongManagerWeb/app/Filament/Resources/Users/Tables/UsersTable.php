@@ -14,7 +14,7 @@ class UsersTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->columns([
+            ->striped()->paginationPageOptions([10, 25, 50])->defaultPaginationPageOption(10)->columns([
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('username')->searchable(),
@@ -34,8 +34,11 @@ class UsersTable
                     ->toggleable(isToggledHiddenByDefault: true),
                 IconColumn::make('active')
                     ->boolean(),
-                IconColumn::make('is_admin')
-                    ->boolean(),
+                TextColumn::make('roles.name')
+                    ->label('Roles')
+                    ->badge()
+                    ->separator(',')
+                    ->searchable(),
             ])
             ->filters([
                 //
@@ -50,4 +53,3 @@ class UsersTable
             ]);
     }
 }
-

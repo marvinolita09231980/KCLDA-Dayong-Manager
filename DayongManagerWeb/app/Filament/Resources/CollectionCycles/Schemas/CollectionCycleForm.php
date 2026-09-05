@@ -13,7 +13,7 @@ class CollectionCycleForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
-            ->components([
+            ->columns(['default' => 1, 'md' => 2])->components([
                 TextInput::make('name')
                     ->required(),
                 Select::make('type')->options(['Dayong'=>'Dayong','Annual Dues'=>'Annual Dues','Registration Fee'=>'Registration Fee'])->required(),

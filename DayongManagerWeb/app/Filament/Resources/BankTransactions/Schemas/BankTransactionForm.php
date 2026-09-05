@@ -14,7 +14,7 @@ class BankTransactionForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
-            ->components([
+            ->columns(['default' => 1, 'md' => 2])->components([
                 DatePicker::make('transaction_date')
                     ->required()->default(now()),
                 Select::make('transaction_type')->options(['Deposit'=>'Deposit','Withdrawal'=>'Withdrawal'])->required()->default('Deposit'),

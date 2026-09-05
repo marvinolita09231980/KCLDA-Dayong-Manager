@@ -18,7 +18,9 @@ class BankTransactionResource extends Resource
 {
     protected static ?string $model = BankTransaction::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingLibrary;
+    protected static string|\UnitEnum|null $navigationGroup = 'Finance';
+    protected static ?int $navigationSort = 4;
     public static function canViewAny(): bool { return auth()->user()?->hasPermission('ledger.view') ?? false; }
     public static function canCreate(): bool { return auth()->user()?->hasPermission('ledger.manage') ?? false; }
     public static function canEdit($record): bool { return static::canCreate(); }

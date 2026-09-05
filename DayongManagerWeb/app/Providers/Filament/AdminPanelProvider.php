@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -30,9 +31,24 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(\App\Filament\Auth\Login::class)
             ->brandName('KCLDA Dayong Manager')
+            ->brandLogo(fn () => view('filament.brand'))
+            ->renderHook(\Filament\View\PanelsRenderHook::HEAD_END, fn () => view('filament.theme'))
+            ->darkMode(false)
+            ->sidebarWidth('16rem')
             ->colors([
-                'primary' => Color::Blue,
+                'primary' => Color::hex('#244569'),
             ])
+            ->plugin(
+                FilamentShieldPlugin::make()
+                    ->navigationGroup('Administration')
+                    ->navigationLabel('Roles & Permissions')
+                    ->navigationIcon('heroicon-o-shield-check')
+                    ->navigationSort(7)
+                    ->gridColumns(['default' => 1, 'md' => 2, 'xl' => 3])
+                    ->checkboxListColumns(['default' => 1, 'md' => 2])
+                    ->resourceCheckboxListColumns(['default' => 1, 'md' => 2])
+                    ->simpleResourcePermissionView()
+            )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
@@ -40,7 +56,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
-                AccountWidget::class,
+
                 DayongStatsOverview::class,
             ])
             ->middleware([
@@ -59,4 +75,3 @@ class AdminPanelProvider extends PanelProvider
             ]);
     }
 }
-

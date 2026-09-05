@@ -18,7 +18,9 @@ class CollectionCycleResource extends Resource
 {
     protected static ?string $model = CollectionCycle::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
+    protected static string|\UnitEnum|null $navigationGroup = 'Collections';
+    protected static ?int $navigationSort = 2;
     public static function canViewAny(): bool { return auth()->user()?->hasPermission('collections.view') ?? false; }
     public static function canCreate(): bool { return auth()->user()?->hasPermission('collections.manage') ?? false; }
     public static function canEdit($record): bool { return static::canCreate(); }

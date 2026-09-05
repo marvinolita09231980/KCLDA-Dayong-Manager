@@ -13,7 +13,7 @@ class PaymentForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
-            ->components([
+            ->columns(['default' => 1, 'md' => 2])->components([
                 Select::make('member_id')
                     ->relationship('member', 'last_name')->getOptionLabelFromRecordUsing(fn ($record) => $record->full_name . ' — ' . $record->council)->searchable(['first_name','middle_name','last_name'])->preload()
                     ->required(),
