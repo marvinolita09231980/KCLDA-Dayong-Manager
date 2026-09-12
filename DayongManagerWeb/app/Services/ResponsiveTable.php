@@ -24,7 +24,17 @@ class ResponsiveTable
 
         $detailsAction = Action::make('details')->label('View details')->icon('heroicon-o-eye')
                     ->modalHeading('Record details')->modalSubmitAction(false)->modalCancelActionLabel('Close')
+                    ->modalWidth(in_array('full_name', $primary, true) ? '5xl' : '2xl')
                     ->modalContent(function (Model $record) use ($columns) {
+                        if ($record instanceof \App\Models\Member) {
+                            $record->loadMissing('startCycle');
+                            $payments = auth()->user()?->hasPermission('collections.view')
+                                ? $record->payments()->with('collectionCycle')->orderByDesc('date_paid')->orderByDesc('id')->get()
+                                : null;
+
+                            return view('filament.member-details', ['member' => $record, 'payments' => $payments]);
+                        }
+
                         $details = [];
                         foreach ($columns as $column) {
                             $displayColumn = clone $column;
@@ -43,9 +53,7 @@ class ResponsiveTable
         $editAction = EditAction::make()->authorize(fn (Model $record, $livewire) => $livewire::getResource()::canEdit($record));
         $deleteAction = DeleteAction::make()->authorize(fn (Model $record, $livewire) => $livewire::getResource()::canDelete($record));
         $actions = in_array('full_name', $primary, true)
-            ? [Action::make('recordPayment')->label('Record payment')->icon('heroicon-o-banknotes')
-                ->visible(fn () => \App\Filament\Resources\Payments\PaymentResource::canCreate())
-                ->url(fn (Model $record) => \App\Filament\Resources\Payments\PaymentResource::getUrl('create', ['member_id' => $record->getKey()])),
+            ? [RecordMemberPayment::make(),
                 $detailsAction, ActionGroup::make([$editAction, $deleteAction])->label('More actions')->icon('heroicon-o-ellipsis-vertical')]
             : [$detailsAction, $editAction, ActionGroup::make([$deleteAction])->label('More actions')->icon('heroicon-o-ellipsis-vertical')];
 

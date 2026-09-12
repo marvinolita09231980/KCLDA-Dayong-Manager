@@ -9,12 +9,40 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
+use App\Models\CollectionCycle;
 
 class MembersTable
 {
     public static function configure(Table $table): Table
     {
+        $payableCycles = null;
         $table
+            ->header(fn () => view('filament.members-unpaid-cycles', [
+                'cycles' => auth()->user()?->hasPermission('collections.view') ? CollectionCycle::orderByDesc('id')->get(['id', 'name']) : collect(),
+            ]))
+            ->modifyQueryUsing(function (Builder $query, $livewire): Builder {
+                if (! (auth()->user()?->hasPermission('collections.view') ?? false)) {
+                    return $query;
+                }
+                $query->with('payments');
+                $cycleIds = CollectionCycle::whereKey($livewire->unpaidCycleIds ?? [])->pluck('id');
+                if ($cycleIds->isEmpty()) {
+                    return $query;
+                }
+
+                $clause = ($livewire->unpaidCycleMatch ?? 'or') === 'and' ? 'where' : 'orWhere';
+                return $query->where(function (Builder $query) use ($cycleIds, $clause): void {
+                    foreach ($cycleIds as $cycleId) {
+                        $query->{$clause}(function (Builder $members) use ($cycleId): void {
+                            $members->where(fn (Builder $eligible) => $eligible
+                                ->whereNull('start_cycle_id')->orWhere('start_cycle_id', '<=', $cycleId))
+                                ->whereDoesntHave('payments', fn (Builder $payments) => $payments
+                                    ->where('collection_cycle_id', $cycleId)->where('amount', '>', 0));
+                        });
+                    }
+                });
+            })
             ->striped()->paginationPageOptions([10, 25, 50])->defaultPaginationPageOption(10)->columns([
                 TextColumn::make('full_name')->label('Member')->description(fn ($record) => $record->council)->wrap()->state(fn ($record) => $record->full_name)->searchable(['last_name','first_name','middle_name'])->sortable(['last_name','first_name']),
                 TextColumn::make('birth_date')->toggleable(isToggledHiddenByDefault: true)
@@ -26,8 +54,20 @@ class MembersTable
                     ->searchable(),
                 TextColumn::make('sponsor_name')->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
-                TextColumn::make('contact_number')->visibleFrom('md')
-                    ->searchable(),
+                TextColumn::make('unpaid_payables')->label('Unpaid payables')
+                    ->visible(fn () => auth()->user()?->hasPermission('collections.view') ?? false)
+                    ->state(function ($record) use (&$payableCycles): array {
+                        $payableCycles ??= CollectionCycle::orderBy('id')->get();
+                        $payments = $record->payments->keyBy('collection_cycle_id');
+
+                        return $payableCycles
+                            ->filter(fn ($cycle) => (! $record->start_cycle_id || $cycle->id >= $record->start_cycle_id)
+                                && (float) $cycle->expected_amount > 0
+                                && (float) ($payments->get($cycle->id)?->amount ?? 0) <= 0)
+                            ->map(fn ($cycle) => $cycle->name.' — ₱'.number_format((float) $cycle->expected_amount, 2))
+                            ->values()->all();
+                    })
+                    ->listWithLineBreaks()->wrap()->placeholder('None'),
                 TextColumn::make('beneficiary_name')->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('beneficiary_contact')->toggleable(isToggledHiddenByDefault: true)
@@ -74,6 +114,6 @@ class MembersTable
                 ]),
             ]);
 
-        return \App\Services\ResponsiveTable::configure($table, ['full_name', 'member_status']);
+        return \App\Services\ResponsiveTable::configure($table, ['full_name', 'unpaid_payables', 'member_status']);
     }
 }

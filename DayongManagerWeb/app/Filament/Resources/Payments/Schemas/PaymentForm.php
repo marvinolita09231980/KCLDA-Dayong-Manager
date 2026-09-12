@@ -15,6 +15,7 @@ class PaymentForm
         return $schema
             ->columns(['default' => 1, 'md' => 2])->components([
                 Select::make('member_id')
+                    ->live()
                     ->relationship('member', 'last_name')->getOptionLabelFromRecordUsing(fn ($record) => $record->full_name . ' — ' . $record->council)->searchable(['first_name','middle_name','last_name'])->preload()
                     ->required(),
                 Select::make('collection_cycle_id')

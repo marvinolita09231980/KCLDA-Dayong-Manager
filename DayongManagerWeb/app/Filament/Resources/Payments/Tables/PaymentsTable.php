@@ -14,7 +14,7 @@ class PaymentsTable
     {
         $table
             ->striped()->paginationPageOptions([10, 25, 50])->defaultPaginationPageOption(10)->columns([
-                TextColumn::make('member.full_name')->label('Member')->state(fn ($record) => $record->member->full_name)->searchable(['member.first_name','member.last_name']),
+                TextColumn::make('member.full_name')->label('Member')->state(fn ($record) => $record->member->full_name)->searchable(['first_name', 'last_name']),
                 TextColumn::make('member.council')->searchable(),
                 TextColumn::make('collectionCycle.name')
                     ->searchable(),
