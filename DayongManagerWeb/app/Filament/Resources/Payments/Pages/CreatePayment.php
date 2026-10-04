@@ -3,8 +3,9 @@
 namespace App\Filament\Resources\Payments\Pages;
 
 use App\Filament\Resources\Payments\PaymentResource;
-use Filament\Resources\Pages\CreateRecord;
+use App\Models\CollectionCycle;
 use App\Models\Member;
+use Filament\Resources\Pages\CreateRecord;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
@@ -15,6 +16,13 @@ class CreatePayment extends CreateRecord
     use WithPagination;
 
     protected static string $resource = PaymentResource::class;
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['notes'] = $data['notes'] ?? '';
+
+        return $data;
+    }
 
     public function content(Schema $schema): Schema
     {
@@ -39,8 +47,13 @@ class CreatePayment extends CreateRecord
     protected function afterFill(): void
     {
         $memberId = request()->integer('member_id');
-        if ($memberId && \App\Models\Member::whereKey($memberId)->exists()) {
+        if ($memberId && Member::whereKey($memberId)->exists()) {
             $this->data['member_id'] = $memberId;
+        }
+
+        $cycleId = request()->integer('collection_cycle_id');
+        if ($cycleId && CollectionCycle::whereKey($cycleId)->exists()) {
+            $this->data['collection_cycle_id'] = $cycleId;
         }
     }
 }

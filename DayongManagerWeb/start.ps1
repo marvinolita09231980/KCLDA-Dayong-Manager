@@ -1,3 +1,7 @@
+param(
+    [switch]$NoBrowser
+)
+
 $ErrorActionPreference = 'Stop'
 
 try {
@@ -60,7 +64,9 @@ try {
         }
     }
 
-    Start-Process $url
+    if (-not $NoBrowser) {
+        Start-Process $url
+    }
 } catch {
     Add-Type -AssemblyName System.Windows.Forms
     [System.Windows.Forms.MessageBox]::Show(

@@ -35,8 +35,15 @@
             <div class="compliance-filters">
                 <label class="compliance-search" for="compliance-search"><span>Search members</span><div class="compliance-input-icon"><x-heroicon-o-magnifying-glass aria-hidden="true" /><input id="compliance-search" type="search" placeholder="Search by member name…" wire:model.live.debounce.300ms="search" /></div></label>
                 <label for="compliance-council"><span>Council</span><select id="compliance-council" wire:model.live="council"><option value="">All councils</option>@foreach($councils as $name)<option value="{{ $name }}">{{ $name }}</option>@endforeach</select></label>
-                <label for="compliance-recommendation"><span>Recommendation</span><select id="compliance-recommendation" wire:model.live="recommendation"><option value="">All recommendations</option>@foreach(['No action', 'Review for Inactive status', 'Subject for Board expulsion review'] as $value)<option>{{ $value }}</option>@endforeach</select></label>
+                <label for="compliance-recommendation"><span>Recommendation</span><select id="compliance-recommendation" wire:model.live="recommendation"><option value="">All recommendations</option>@foreach(['Needs review', 'Not in good standing - but not subject for review', 'No action', 'Review for Inactive status', 'Subject for Board expulsion review'] as $value)<option value="{{ $value }}">{{ $value }}</option>@endforeach</select></label>
                 <button class="compliance-reset" type="button" wire:click="resetFilters" @disabled(!$filtered)>Reset filters</button>
+            </div>
+            <div class="compliance-report-actions">
+                <span>Download the selected council or every council in one report.</span>
+                <div class="compliance-report-buttons">
+                    <button type="button" wire:click="downloadCouncilReport" wire:loading.attr="disabled" wire:target="downloadCouncilReport" @disabled($council === '')>Download selected council (PDF)</button>
+                    <button type="button" wire:click="downloadAllCouncilReports" wire:loading.attr="disabled" wire:target="downloadAllCouncilReports" @disabled($councils->isEmpty())>Download all councils (PDF)</button>
+                </div>
             </div>
             <div class="compliance-results" wire:loading.class="compliance-loading" wire:target="search,council,recommendation,resetFilters">
                 <div class="compliance-list-heading" aria-hidden="true"><span>Member / council</span><span>Annual dues</span><span>Mortuary contributions</span><span>Recommendation</span></div>

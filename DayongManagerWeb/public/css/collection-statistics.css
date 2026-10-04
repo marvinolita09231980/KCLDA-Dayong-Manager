@@ -1,0 +1,58 @@
+.collection-statistics { display: grid; gap: 24px; min-width: 0; }
+.collection-statistics p { color: #526176; font-size: 14px; line-height: 1.6; }
+.statistics-range { padding: 20px 24px; border: 1px solid #dbe2ea; border-radius: 12px; background: #fff; }
+.statistics-range h2 { margin: 0 0 6px; color: #142b46; font-size: 18px; font-weight: 600; }
+.statistics-range p { margin: 0 0 14px; }
+.statistics-range-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.statistics-range-controls label { display: grid; flex: 1 1 220px; gap: 5px; color: #142b46; font-size: 14px; font-weight: 600; }
+.statistics-range-controls select { width: 100%; min-height: 40px; padding: 7px 10px; border: 1px solid #bdcbd9; border-radius: 7px; background: #fff; color: #142b46; }
+.statistics-range-controls button { min-height: 40px; padding: 7px 14px; border: 1px solid #bdcbd9; border-radius: 7px; background: #f8fafc; color: #244569; cursor: pointer; }
+.statistics-range-controls button:disabled { opacity: .5; cursor: default; }
+.statistics-range .statistics-range-selection { margin: 12px 0 0; font-weight: 600; }
+.statistics-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+.statistics-cycle-title { margin: 0 0 12px; font-size: 18px; font-weight: 600; color: #142b46; }
+.statistics-cycle-summary { margin-top: 24px; }
+.statistics-cycle-summary .statistics-table-scroll + .statistics-table-scroll { margin-top: 20px; }
+.statistics-financial-report .statistics-table-scroll { border: 1px solid #dbe2ea; border-radius: 12px; }
+.statistics-financial-report h4 { margin-top: 24px; }
+.statistics-financial-report table td:last-child { color: #142b46; font-weight: 700; }
+.statistics-financial-report .statistics-current-balance { background: #e8f5ed; }
+.statistics-financial-report .statistics-disbursement-item th { padding-left: 36px; font-weight: 500; }
+.statistics-financial-report .statistics-disbursement-total { background: #faeeec; }
+.statistics-financial-report .statistics-funds-total { background: #edf3f8; }
+.statistics-financial-report .statistics-funds-total th,
+.statistics-financial-report .statistics-funds-total td { color: #294d70; font-weight: 700; }
+.statistics-financial-report .statistics-disbursement-total th,
+.statistics-financial-report .statistics-disbursement-total td { color: #843f39; font-weight: 700; }
+.statistics-financial-report .statistics-current-balance th,
+.statistics-financial-report .statistics-current-balance td { color: #205f49; font-weight: 750; }
+.council-cycle-table { width: 100%; min-width: 0; overflow-x: auto; }
+.council-cycle-table table { width: 100%; min-width: 1000px; border-collapse: collapse; font-size: 16px; }
+.council-cycle-table caption { text-align: left; font-size: 20px; font-weight: 700; padding: 12px 16px; }
+.council-cycle-table th, .council-cycle-table td { padding: 16px; text-align: right; border-bottom: 1px solid #dbe2ea; font-variant-numeric: tabular-nums; }
+.council-cycle-table th:first-child { text-align: left; min-width: 280px; }
+.council-cycle-table thead { background: #f1f5f9; color: #142b46; }
+.council-summary-row { background: #eaf0f6; color: #142b46; font-weight: 700; }
+.council-cycle-row th:first-child { padding-left: 36px; font-weight: 400; }
+.statistics-summary + .fi-section { margin-bottom: 24px; }
+.statistics-summary article { padding: 24px; border: 1px solid #dbe2ea; border-top: 4px solid #244569; border-radius: 12px; background: white; }
+.statistics-summary article:first-child { border-top-color: #21805b; }
+.statistics-summary article:nth-child(2) { border-top-color: #b77820; }
+.statistics-summary span { display: block; color: #526176; font-size: 14px; }
+.statistics-summary small { display: block; margin-top: 8px; color: #526176; font-size: 12px; line-height: 1.5; }
+.statistics-summary strong { display: block; margin-top: 8px; font-size: clamp(22px, 2.5vw, 32px); overflow-wrap: anywhere; color: #142b46; }
+.statistics-table-scroll { overflow-x: auto; }
+.statistics-table-scroll table { width: 100%; border-collapse: collapse; font-size: 22px; line-height: 1.6; }
+.statistics-table-scroll th, .statistics-table-scroll td { padding: 28px 36px; border-bottom: 1px solid #e2e8f0; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.statistics-table-scroll th:first-child, .statistics-table-scroll td:first-child { text-align: left; }
+.statistics-table-scroll thead { background: #f1f5f9; font-weight: 600; }
+.statistics-table-scroll td a { color: #244569; text-decoration: underline; }
+.collection-statistics .fi-ta-table { width: 100%; min-width: 1400px; }
+.collection-statistics .fi-ta-header-cell { padding: 28px 36px; font-size: 20px; line-height: 1.5; white-space: nowrap; }
+.collection-statistics .fi-ta-cell { padding: 8px 0; }
+.collection-statistics .fi-ta-cell .fi-ta-text { padding: 30px 36px; }
+.collection-statistics .fi-ta-text-item { font-size: 22px; line-height: 1.6; font-variant-numeric: tabular-nums; }
+.collection-statistics .fi-ta-content { overflow-x: auto; }
+.statistics-loading { opacity: .5; }
+.statistics-explanation { max-width: 1000px; }
+@media (max-width: 700px) { .statistics-summary { grid-template-columns: 1fr; } .statistics-summary article { padding: 18px; } }

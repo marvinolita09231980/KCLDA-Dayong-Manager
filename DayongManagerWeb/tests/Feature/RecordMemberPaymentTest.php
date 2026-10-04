@@ -43,4 +43,40 @@ class RecordMemberPaymentTest extends TestCase
             ->assertHasTableActionErrors(['collection_cycle_id' => 'unique'])->assertNoRedirect();
         $this->assertDatabaseCount('payments', 1);
     }
+
+    public function test_member_payment_can_be_recorded_without_notes(): void
+    {
+        $this->actingAs(User::factory()->create(['active' => true, 'is_admin' => true]));
+        $member = Member::create(['first_name' => 'Ana', 'last_name' => 'Cruz', 'council' => 'North']);
+        $cycle = CollectionCycle::create(['name' => 'Test Collection', 'type' => 'Dayong', 'expected_amount' => 100, 'active' => true]);
+
+        Livewire::test(ListMembers::class)
+            ->callTableAction('recordPayment', $member, [
+                'collection_cycle_id' => $cycle->id,
+                'amount' => 100,
+                'date_paid' => '2026-09-12',
+                'receipt_number' => 'MODAL-BLANK',
+                'notes' => '',
+            ])
+            ->assertHasNoTableActionErrors();
+
+        $this->assertDatabaseHas('payments', ['member_id' => $member->id, 'receipt_number' => 'MODAL-BLANK', 'notes' => '']);
+    }
+
+    public function test_zero_amount_cannot_be_recorded_as_a_payment(): void
+    {
+        $this->actingAs(User::factory()->create(['active' => true, 'is_admin' => true]));
+        $member = Member::create(['first_name' => 'Ana', 'last_name' => 'Cruz', 'council' => 'North']);
+        $cycle = CollectionCycle::create(['name' => 'Test Collection', 'type' => 'Dayong', 'expected_amount' => 200]);
+
+        Livewire::test(ListMembers::class)
+            ->callTableAction('recordPayment', $member, [
+                'collection_cycle_id' => $cycle->id,
+                'amount' => 0,
+                'receipt_number' => 'ZERO',
+            ])
+            ->assertHasTableActionErrors(['amount' => 'min']);
+
+        $this->assertDatabaseCount('payments', 0);
+    }
 }

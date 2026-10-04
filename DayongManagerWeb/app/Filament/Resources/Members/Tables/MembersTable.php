@@ -11,6 +11,7 @@ use Filament\Tables\Table;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use App\Models\CollectionCycle;
+use App\Services\PaymentCycleColumns;
 
 class MembersTable
 {
@@ -19,26 +20,28 @@ class MembersTable
         $payableCycles = null;
         $table
             ->header(fn () => view('filament.members-unpaid-cycles', [
-                'cycles' => auth()->user()?->hasPermission('collections.view') ? CollectionCycle::orderByDesc('id')->get(['id', 'name']) : collect(),
+                'cycles' => auth()->user()?->hasPermission('collections.view') ? PaymentCycleColumns::all()->sortByDesc('id')->map(fn ($column) => (object) ['id' => $column['id'], 'name' => $column['name']]) : collect(),
             ]))
             ->modifyQueryUsing(function (Builder $query, $livewire): Builder {
                 if (! (auth()->user()?->hasPermission('collections.view') ?? false)) {
                     return $query;
                 }
                 $query->with('payments');
-                $cycleIds = CollectionCycle::whereKey($livewire->unpaidCycleIds ?? [])->pluck('id');
-                if ($cycleIds->isEmpty()) {
+                $selected = $livewire->unpaidCycleIds ?? [];
+                if ($selected === []) {
                     return $query;
                 }
 
                 $clause = ($livewire->unpaidCycleMatch ?? 'or') === 'and' ? 'where' : 'orWhere';
-                return $query->where(function (Builder $query) use ($cycleIds, $clause): void {
-                    foreach ($cycleIds as $cycleId) {
-                        $query->{$clause}(function (Builder $members) use ($cycleId): void {
-                            $members->where(fn (Builder $eligible) => $eligible
-                                ->whereNull('start_cycle_id')->orWhere('start_cycle_id', '<=', $cycleId))
-                                ->whereDoesntHave('payments', fn (Builder $payments) => $payments
-                                    ->where('collection_cycle_id', $cycleId)->where('amount', '>', 0));
+                $columns = PaymentCycleColumns::selected(['collection_cycle_id' => ['values' => $selected]]);
+                return $query->living()->where(function (Builder $query) use ($columns, $clause): void {
+                    foreach ($columns as $column) {
+                        $query->{$clause}(function (Builder $members) use ($column): void {
+                            foreach ($column['cycles'] as $cycle) {
+                                $members->orWhere(fn (Builder $eligible) => PaymentCycleColumns::whereCycleApplicable($eligible, $cycle)
+                                    ->whereDoesntHave('payments', fn (Builder $payments) => $payments
+                                        ->where('collection_cycle_id', $cycle->id)->where('amount', '>', 0)));
+                            }
                         });
                     }
                 });
@@ -57,11 +60,14 @@ class MembersTable
                 TextColumn::make('unpaid_payables')->label('Unpaid payables')
                     ->visible(fn () => auth()->user()?->hasPermission('collections.view') ?? false)
                     ->state(function ($record) use (&$payableCycles): array {
+                        if ($record->isDeceased()) {
+                            return [];
+                        }
                         $payableCycles ??= CollectionCycle::orderBy('id')->get();
                         $payments = $record->payments->keyBy('collection_cycle_id');
 
                         return $payableCycles
-                            ->filter(fn ($cycle) => (! $record->start_cycle_id || $cycle->id >= $record->start_cycle_id)
+                            ->filter(fn ($cycle) => PaymentCycleColumns::cycleApplicable($record, $cycle)
                                 && (float) $cycle->expected_amount > 0
                                 && (float) ($payments->get($cycle->id)?->amount ?? 0) <= 0)
                             ->map(fn ($cycle) => $cycle->name.' — ₱'.number_format((float) $cycle->expected_amount, 2))
@@ -103,7 +109,15 @@ class MembersTable
             ])
             ->filters([
                 SelectFilter::make('council')->options(fn () => \App\Models\Member::query()->distinct()->orderBy('council')->pluck('council','council')),
-                SelectFilter::make('member_status')->options(['Active'=>'Active','Inactive'=>'Inactive','Expelled'=>'Expelled','Deceased'=>'Deceased']),
+                SelectFilter::make('member_status')->options(['Active'=>'Active','Inactive'=>'Inactive','Expelled'=>'Expelled','Deceased'=>'Deceased'])
+                    ->query(function (Builder $query, array $data): Builder {
+                        $status = $data['value'] ?? null;
+                        if (! $status) {
+                            return $query;
+                        }
+
+                        return $status === 'Active' ? $query->living()->where('member_status', 'Active') : $query->where('member_status', $status);
+                    }),
             ])
             ->recordActions([
                 EditAction::make(),

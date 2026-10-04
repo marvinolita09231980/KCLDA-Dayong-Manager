@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Disbursements\Schemas;
 
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Hidden;
@@ -22,9 +23,16 @@ class DisbursementForm
                 TextInput::make('payee')
                     ->required()
                     ->default(''),
-                TextInput::make('category')
-                    ->required()
-                    ->default('Other Expense'),
+                Select::make('category')
+                    ->options([
+                        'Claims' => 'Claims',
+                        'Necrological service' => 'Necrological service',
+                        'Transportation expenses' => 'Transportation expenses',
+                        'Office Supply' => 'Office Supply',
+                        'Meeting' => 'Meeting',
+                        'Others' => 'Others',
+                    ])
+                    ->required(),
                 Textarea::make('particulars')
                     ->required()
                     ->default('')

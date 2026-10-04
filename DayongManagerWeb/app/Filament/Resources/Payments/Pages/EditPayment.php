@@ -10,6 +10,13 @@ class EditPayment extends EditRecord
 {
     protected static string $resource = PaymentResource::class;
 
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $data['notes'] = $data['notes'] ?? '';
+
+        return $data;
+    }
+
     protected function getHeaderActions(): array
     {
         return [

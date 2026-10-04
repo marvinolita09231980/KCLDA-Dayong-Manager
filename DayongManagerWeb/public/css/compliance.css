@@ -36,6 +36,10 @@
 .compliance-reset { min-height: 44px; border-radius: 8px; padding: 10px 12px; font-size: 12px; font-weight: 650; color: #365574; cursor: pointer; }
 .compliance-reset:hover:not(:disabled) { background: #edf2f7; }
 .compliance-reset:disabled { opacity: .45; cursor: default; }
+.compliance-report-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 0 26px 20px; color: #526176; font-size: 12px; }
+.compliance-report-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+.compliance-report-actions button { min-height: 44px; border-radius: 8px; padding: 10px 15px; background: #244569; color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; }
+.compliance-report-actions button:disabled { opacity: .45; cursor: default; }
 .compliance-results { transition: opacity .15s; }
 .compliance-loading { opacity: .5; }
 .compliance-list-heading, .compliance-member-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, .85fr) minmax(0, 1.1fr) minmax(0, 1fr); gap: 22px; align-items: center; }

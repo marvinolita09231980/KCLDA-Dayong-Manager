@@ -38,14 +38,21 @@ class RecordMemberPayment
                         ->options(fn () => CollectionCycle::orderByDesc('id')->pluck('name', 'id'))
                         ->searchable()->required()->columnSpanFull()
                         ->rules(fn (Member $record) => [
+                            function (string $attribute, $value, \Closure $fail) use ($record): void {
+                                $cycle = CollectionCycle::find($value);
+                                if ($cycle && in_array($cycle->type, ['Registration Fee', 'Annual Dues'], true)
+                                    && PaymentCycleColumns::year($cycle) && ! PaymentCycleColumns::cycleApplicable($record, $cycle)) {
+                                    $fail('Registration fees apply only to the registration year; select annual dues for an existing member. Check the member’s registration date.');
+                                }
+                            },
                             Rule::exists('collection_cycles', 'id'),
                             Rule::unique('payments', 'collection_cycle_id')->where('member_id', $record->id),
                         ])
                         ->validationMessages(['unique' => 'This member already has a payment for this collection cycle. Edit the existing payment instead.']),
-                    TextInput::make('amount')->numeric()->prefix('₱')->minValue(0)->default(0)->required(),
+                    TextInput::make('amount')->numeric()->prefix('₱')->minValue(0.01)->required(),
                     DatePicker::make('date_paid')->default(now()),
                     TextInput::make('receipt_number')->required()->maxLength(255)->columnSpanFull(),
-                    Textarea::make('notes')->required()->rows(3)->columnSpanFull(),
+                    Textarea::make('notes')->default('')->rows(3)->columnSpanFull(),
                     Actions::make([
                         $action->getModalSubmitAction(),
                         $action->getModalCancelAction(),
@@ -61,6 +68,7 @@ class RecordMemberPayment
                 ]),
             ])
             ->action(function (Member $record, array $data): void {
+                $data['notes'] = $data['notes'] ?? '';
                 $record->payments()->create($data);
                 Notification::make()->title('Payment recorded')->success()->send();
             });

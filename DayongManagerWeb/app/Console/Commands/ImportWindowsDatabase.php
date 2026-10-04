@@ -111,6 +111,9 @@ class ImportWindowsDatabase extends Command
                         $record[$column] = $value;
                     }
 
+                    if ($table === 'members' && isset($record['council'])) {
+                        $record['council'] = \App\Models\Member::normalizeCouncil($record['council']);
+                    }
                     if ($table === 'members' && isset($record['start_cycle_id'])) {
                         $record['start_cycle_id'] = $ids['collection_cycles'][$record['start_cycle_id']]
                             ?? throw new RuntimeException('Member refers to a missing start cycle.');

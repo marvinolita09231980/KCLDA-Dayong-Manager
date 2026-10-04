@@ -8,56 +8,51 @@ use Illuminate\Support\Collection;
 
 class ComplianceReport
 {
-    public function rows(): Collection
+    private const FIRST_COMPLIANCE_YEAR = 2026;
+
+    public function rows(?string $council = null): Collection
     {
         $cycles = CollectionCycle::orderBy('id')->get();
+        $columns = PaymentCycleColumns::all();
 
-        return Member::with('payments')->orderBy('council')->orderBy('last_name')->get()->map(function (Member $member) use ($cycles) {
-            $row = ['id' => $member->id, 'name' => $member->full_name, 'council' => $member->council, 'status' => $member->member_status];
-            $payments = $member->payments->keyBy('collection_cycle_id');
-            $row['payment_cycles'] = $cycles->map(function ($cycle) use ($payments) {
-                $payment = $payments->get($cycle->id);
-                $amount = (float) ($payment?->amount ?? 0);
-
-                return [
-                    'name' => $cycle->name,
-                    'type' => $cycle->type,
-                    'expected' => (float) $cycle->expected_amount,
-                    'paid' => $amount,
-                    'date' => $payment?->date_paid?->format('M j, Y'),
-                    'receipt' => $payment?->receipt_number,
-                    'notes' => $payment?->notes,
-                    'status' => ! $payment ? 'No payment recorded' : ($amount >= (float) $cycle->expected_amount ? 'Paid' : ($amount > 0 ? 'Partial payment' : 'Unpaid')),
-                ];
-            });
-            $payments = $member->payments->keyBy('collection_cycle_id');
-            $row['payment_cycles'] = $cycles->map(function ($cycle) use ($payments) {
-                $payment = $payments->get($cycle->id);
-                $amount = (float) ($payment?->amount ?? 0);
+        return Member::query()->with(['payments', 'registrationPayments.collectionCycle'])
+            ->when($council !== null, fn ($query) => $query->where('council', $council))
+            ->orderBy('council')->orderBy('last_name')->get()->map(function (Member $member) use ($cycles, $columns) {
+            $row = ['id' => $member->id, 'name' => $member->full_name, 'council' => $member->council, 'status' => $member->isDeceased() ? 'Deceased' : $member->member_status,
+                'registered' => $member->registration_date?->format('M j, Y') ?? 'Not recorded'];
+            $registered = PaymentCycleColumns::registrationYear($member);
+            $row['payment_cycles'] = $columns->values()->map(function ($column) use ($member, $registered) {
+                $records = $member->payments->whereIn('collection_cycle_id', $column['ids']);
+                $amount = PaymentCycleColumns::cents($member, $column) / 100;
+                $charge = PaymentCycleColumns::charge($member, $column);
+                $cycle = $charge ?? $column['cycles']->first();
+                $credited = PaymentCycleColumns::creditedCents($member, $column) / 100;
 
                 return [
-                    'name' => $cycle->name,
-                    'type' => $cycle->type,
+                    'name' => $column['name'],
+                    'type' => $charge?->type ?? 'Not applicable',
                     'expected' => (float) $cycle->expected_amount,
                     'paid' => $amount,
-                    'date' => $payment?->date_paid?->format('M j, Y'),
-                    'receipt' => $payment?->receipt_number,
-                    'notes' => $payment?->notes,
-                    'status' => ! $payment ? 'No payment recorded' : ($amount >= (float) $cycle->expected_amount ? 'Paid' : ($amount > 0 ? 'Partial payment' : 'Unpaid')),
+                    'date' => $records->map(fn ($payment) => $payment->date_paid?->format('M j, Y'))->filter()->join('; '),
+                    'receipt' => $records->pluck('receipt_number')->filter()->join('; '),
+                    'notes' => $records->pluck('notes')->filter()->join('; '),
+                    'status' => ! $charge ? 'Not applicable' : ($records->isEmpty() ? 'No payment recorded' : ($credited >= (float) $charge->expected_amount ? 'Paid' : ($credited > 0 ? 'Partial payment' : 'Unpaid'))),
                 ];
             });
-            if ($member->member_status === 'Deceased') {
-                return $row + ['annual' => '—', 'missed' => 0, 'unpaid' => '—', 'standing' => '—', 'recommendation' => '', 'reason' => 'Deceased'];
+            if ($member->isDeceased()) {
+                return $row + ['annual' => '—', 'missed' => 0, 'unpaid' => '—', 'standing' => '—', 'recommendation' => '', 'reason' => 'Deceased', 'report_reason' => 'Recorded deceased.',
+                    'annual_due_cents' => 0, 'mortuary_due_cents' => 0, 'bylaw_references' => [], 'board_reference_unverified' => false];
             }
             $year = now()->year;
-            $registered = $member->registration_date?->year;
-            $firstYear = $registered >= 2027 ? $registered + 1 : 2027;
+            $firstYear = $registered >= self::FIRST_COMPLIANCE_YEAR ? $registered + 1 : self::FIRST_COMPLIANCE_YEAR;
             $paid = $member->payments->keyBy('collection_cycle_id');
             $unpaid = fn ($cycle) => (float) ($paid->get($cycle->id)?->amount ?? 0) < (float) $cycle->expected_amount;
             $annual = $cycles->where('type', 'Annual Dues')->filter(function ($cycle) use ($firstYear, $year) {
-                return preg_match('/\b(20\d{2})\b/', $cycle->name, $match) && (int) $match[1] >= $firstYear && (int) $match[1] <= $year;
+                $cycleYear = PaymentCycleColumns::year($cycle);
+
+                return $cycleYear !== null && $cycleYear >= $firstYear && $cycleYear <= $year;
             });
-            $current = $annual->first(fn ($cycle) => preg_match('/\b'.$year.'\b/', $cycle->name));
+            $current = $annual->first(fn ($cycle) => PaymentCycleColumns::year($cycle) === $year);
             $annualPaid = $year < $firstYear || ($current && ! $unpaid($current));
             $annualMissing = $annual->filter($unpaid)->pluck('name');
             $dayong = $cycles->where('type', 'Dayong')->filter(fn ($cycle) => ! $member->start_cycle_id || $cycle->id >= $member->start_cycle_id);
@@ -65,8 +60,9 @@ class ComplianceReport
             $missed = $dayong->sortByDesc('id')->take(2)->filter($unpaid)->count();
             $recommendation = 'No action';
             $reasons = [];
-            if ($year < 2027) {
-                $reasons[] = 'Strict annual-dues compliance begins in 2027.';
+            $references = ['Section 10'];
+            if ($year < self::FIRST_COMPLIANCE_YEAR) {
+                $reasons[] = 'Strict annual-dues compliance begins in '.self::FIRST_COMPLIANCE_YEAR.'.';
             } elseif ($year < $firstYear) {
                 $reasons[] = "Registration covers {$registered}; separate annual dues begin {$firstYear}.";
             } elseif (! $current) {
@@ -75,9 +71,11 @@ class ComplianceReport
                 $reasons[] = 'Current annual dues are not fully paid.';
                 if (now()->month >= 2) {
                     $reasons[] = 'Insurance coverage is lost after one month under Section 4D.';
+                    $references[] = 'Section 4D';
                 }
                 if (now()->month >= 3) {
                     $reasons[] = 'Review for Inactive status under Section 4E.';
+                    $references[] = 'Section 4E';
                 }
             }
             if ($annualMissing->isNotEmpty()) {
@@ -94,9 +92,11 @@ class ComplianceReport
             }
             if ($member->member_status === 'Inactive') {
                 $reasons[] = 'Recorded Inactive; reinstatement requires full payment of arrears (Section 14A).';
+                $references[] = 'Section 14A';
             }
             if ($member->member_status === 'Expelled') {
                 $reasons[] = 'Recorded Expelled; reinstatement requires a Council Grand Knight request, Board approval and full payment of arrears (Section 14B).';
+                $references[] = 'Section 14B';
             }
             $standing = $member->member_status === 'Active' && $annualPaid && $missing->isEmpty();
             if ($standing) {
@@ -106,7 +106,17 @@ class ComplianceReport
                 $reasons[] = 'Officer remarks: '.$member->remarks;
             }
 
-            return $row + ['annual' => $year < 2027 ? 'Starts 2027' : ($year < $firstYear ? "Registration covers {$registered}" : ($annualMissing->join(', ') ?: ($current ? 'Paid' : 'Cycle missing'))), 'missed' => $missed, 'unpaid' => $missing->join(', ') ?: 'None', 'standing' => $standing ? 'Yes' : 'No', 'recommendation' => $recommendation, 'reason' => implode(' ', $reasons)];
+            $dueCents = fn ($cycle) => max(0, (int) round(((float) $cycle->expected_amount - (float) ($paid->get($cycle->id)?->amount ?? 0)) * 100));
+
+            $annualLabel = $year < self::FIRST_COMPLIANCE_YEAR ? 'Starts '.self::FIRST_COMPLIANCE_YEAR : ($year < $firstYear ? "Registration covers {$registered}" : ($annualMissing->join(', ') ?: ($current ? 'Paid' : 'Cycle missing')));
+            $reportReason = $standing ? 'Active with required payments recorded.' : 'Recorded status: '.$member->member_status.'. Annual dues: '.$annualLabel.'. Unpaid mortuary contributions: '.($missing->join(', ') ?: 'None').'.';
+            if ($member->remarks) {
+                $reportReason .= ' Officer remarks: '.$member->remarks;
+            }
+
+            return $row + ['annual' => $annualLabel, 'missed' => $missed, 'unpaid' => $missing->join(', ') ?: 'None', 'standing' => $standing ? 'Yes' : 'No', 'recommendation' => $recommendation, 'reason' => implode(' ', $reasons), 'report_reason' => $reportReason,
+                'annual_due_cents' => $annual->sum($dueCents), 'mortuary_due_cents' => $dayong->sum($dueCents),
+                'bylaw_references' => array_values(array_unique($references)), 'board_reference_unverified' => $missed >= 2];
         });
     }
 }

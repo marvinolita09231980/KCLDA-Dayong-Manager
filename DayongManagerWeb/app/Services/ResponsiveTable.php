@@ -23,9 +23,17 @@ class ResponsiveTable
         }
 
         $detailsAction = Action::make('details')->label('View details')->icon('heroicon-o-eye')
-                    ->modalHeading('Record details')->modalSubmitAction(false)->modalCancelActionLabel('Close')
-                    ->modalWidth(in_array('full_name', $primary, true) ? '5xl' : '2xl')
+                    ->modalHeading(fn (Model $record) => $record instanceof \App\Models\Payment ? 'Member payment history' : 'Record details')->modalSubmitAction(false)->modalCancelActionLabel('Close')
+                    ->modalWidth(fn (Model $record) => $record instanceof \App\Models\Payment || $record instanceof \App\Models\Member ? '5xl' : '2xl')
                     ->modalContent(function (Model $record) use ($columns) {
+                        if ($record instanceof \App\Models\Payment) {
+                            abort_unless(auth()->user()?->hasPermission('collections.view'), 403);
+                            $member = $record->member;
+                            $payments = $member->payments()->with('collectionCycle')->orderByDesc('date_paid')->orderByDesc('id')->get();
+
+                            return view('filament.payment-member-history', compact('member', 'payments'));
+                        }
+
                         if ($record instanceof \App\Models\Member) {
                             $record->loadMissing('startCycle');
                             $payments = auth()->user()?->hasPermission('collections.view')
@@ -37,6 +45,10 @@ class ResponsiveTable
 
                         $details = [];
                         foreach ($columns as $column) {
+                            if ($column->getName() === 'row_number') {
+                                continue;
+                            }
+
                             $displayColumn = clone $column;
                             $displayColumn->record($record);
                             $value = $displayColumn->getState();

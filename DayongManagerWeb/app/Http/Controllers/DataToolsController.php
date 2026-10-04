@@ -84,6 +84,7 @@ class DataToolsController extends Controller
                     if ($validator->fails()) {
                         throw ValidationException::withMessages(['file' => "Row {$line}: ".$validator->errors()->first().' No records imported.']);
                     }
+                    $record['council'] = Member::normalizeCouncil($record['council']);
                     $identity = array_intersect_key($record, array_flip(['last_name', 'first_name', 'council']));
                     $identity['middle_name'] = $record['middle_name'] ?? '';
                     if (Member::where($identity)->exists()) {

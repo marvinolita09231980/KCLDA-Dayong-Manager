@@ -1,7 +1,7 @@
 @if(auth()->user()->hasPermission('collections.view'))
     <section class="compliance-payments" aria-label="Payment details for {{ $row['name'] }}">
         <h4>Payment details · All cycles</h4>
-        <p>Recorded payments across registration, annual dues and mortuary cycles. A cycle without a payment record does not necessarily mean the member owes that amount.</p>
+        <p>Registration and annual dues share one row per year. The fee shown below the year is the applicable fee: registration for the joining year, annual dues for later years. Amount paid includes all recorded payments; payment status counts only payments for the applicable fee. Mortuary cycles are listed separately.</p>
         <div class="compliance-payment-scroll" tabindex="0" role="region" aria-label="Payment cycle table">
             <table>
                 <thead><tr><th scope="col">Cycle</th><th scope="col">Cycle amount</th><th scope="col">Amount paid</th><th scope="col">Payment status</th><th scope="col">Date paid</th><th scope="col">Receipt / Notes</th></tr></thead>

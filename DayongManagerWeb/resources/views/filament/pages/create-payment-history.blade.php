@@ -1,6 +1,11 @@
 @php
     $member = $this->getPaymentHistoryMember();
     $payments = $member?->payments()->with('collectionCycle')->orderByDesc('date_paid')->orderByDesc('id')->paginate(10, ['*'], 'paymentHistoryPage');
+    $selectedCycle = \App\Models\CollectionCycle::find($this->data['collection_cycle_id'] ?? null);
+    $existingPayment = $member && $selectedCycle
+        ? $member->payments()->where('collection_cycle_id', $selectedCycle->id)->first()
+        : null;
+    $enteredAmount = is_numeric($this->data['amount'] ?? null) ? (float) $this->data['amount'] : null;
 @endphp
 
 <div class="payment-history" aria-live="polite">
@@ -10,6 +15,17 @@
             <p>Their previous payments will appear here so you can review them before recording a new payment.</p>
         </div>
     @else
+        @if($selectedCycle)
+            <div class="payment-cycle-check" role="status">
+                <strong>{{ $selectedCycle->name }}</strong>
+                <p>Cycle amount: PHP {{ number_format((float) $selectedCycle->expected_amount, 2) }}@if($enteredAmount !== null) &middot; Entered amount: PHP {{ number_format($enteredAmount, 2) }}@endif</p>
+                @if($existingPayment)
+                    <p class="payment-cycle-warning">This member already paid PHP {{ number_format((float) $existingPayment->amount, 2) }} for this cycle{{ $existingPayment->receipt_number ? ' (receipt '.$existingPayment->receipt_number.')' : '' }}. Edit that payment instead of creating another.</p>
+                @else
+                    <p class="payment-cycle-available">No payment recorded for this member and cycle.</p>
+                @endif
+            </div>
+        @endif
         <div class="payment-history-summary">
             <div><strong>{{ $member->full_name }}</strong><p>{{ $member->council }}</p></div>
             <span>{{ $payments->total() }} {{ \Illuminate\Support\Str::plural('payment', $payments->total()) }}</span>
